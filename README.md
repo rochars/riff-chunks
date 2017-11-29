@@ -19,6 +19,24 @@ npm install riff-chunks
 function getChunks(buffer, bigEndian=false) {}
 ```
 
+**getChunks()** returns a structure like this:
+```
+{
+        "chunkId": string
+        "chunkSize": number
+        "format": string
+        "subChunks": [
+            {
+                "subChunkId": string,
+                "subChunkSize": number,
+                "subChunkData": Array<number>
+            },
+        ]
+}
+```
+
+The **subChunkData** field contains the raw bytes of the chunk data.
+
 ## LICENSE
 Copyright (c) 2017 Rafael da Silva Rocha.
 

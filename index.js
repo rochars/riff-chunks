@@ -37,30 +37,27 @@ function getChunks(buffer, bigEndian=false) {
  */
 function getSubChunks(buffer, bigEndian) {
     let chunks = [];
-    let len = buffer.length;
     let i = 12;
-    let subChunkSize;
-    let subChunkId;
-    while(i < len) {
-        subChunkId = byteData.fromBytes(
+    while(i < buffer.length) {
+        let subChunkId = byteData.fromBytes(
             buffer.slice(i, i + 4), 8, {"char": true});
-        subChunkSize = byteData.fromBytes(
+        let subChunkSize = byteData.fromBytes(
             buffer.slice(i + 4, i + 8), 32, {'be': bigEndian})[0];
         if (subChunkId == "LIST") {
             chunks.push({
                     "subChunkId": subChunkId,
                     "subChunkSize": subChunkSize,
-                    "subChunks": getSubChunks(buffer.slice(i, i + subChunkSize), bigEndian)
+                    "subChunks": getSubChunks(
+                        buffer.slice(i, i + subChunkSize), bigEndian)
                 });
-            i = i + 8 + subChunkSize;
         } else {
             chunks.push({
                     "subChunkId": subChunkId,
                     "subChunkSize": subChunkSize,
                     "subChunkData": buffer.slice(i + 8, i + 8 + subChunkSize)
                 });
-            i = i + 8 + subChunkSize;
         }
+        i = i + 8 + subChunkSize;
     }
     return chunks;
 }
