@@ -3,6 +3,8 @@ Get the chunks of RIFF and RIFX files.
 Copyright (c) 2017 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
+[![Travis](https://img.shields.io/travis/rochars/riff-chunks.svg?style=for-the-badge)](https://travis-ci.org/rochars/riff-chunks) [![AppVeyor](https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=for-the-badge&logo=appveyor)](https://ci.appveyor.com/project/rochars/riff-chunks) [![Codecov](https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=for-the-badge)](https://codecov.io/gh/rochars/riff-chunks) [![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks)
+
 ## Install
 ```
 npm install riff-chunks
@@ -22,20 +24,22 @@ function getChunks(buffer, bigEndian=false) {}
 **getChunks()** returns a structure like this:
 ```
 {
-        "chunkId": string
-        "chunkSize": number
-        "format": string
-        "subChunks": [
-            {
-                "subChunkId": string,
-                "subChunkSize": number,
-                "subChunkData": Array<number>
-            },
-        ]
+    "chunkId": string,
+    "chunkSize": number,
+    "format": string,
+    "subChunks": [
+        {
+            "subChunkId": string,
+            "subChunkSize": number,
+            "subChunkData": Array<number>
+        },
+    ]
 }
 ```
 
 The **subChunkData** field contains the raw bytes of the chunk data.
+
+**LIST** chunks have their own format identifier and subchunks.
 
 ## LICENSE
 Copyright (c) 2017 Rafael da Silva Rocha.

@@ -60,18 +60,21 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 /*
- * byte-padding: Funcions to pad bits and bytes.
+ * helpers: functions to work with bytes and byte arrays.
  * Copyright (c) 2017 Rafael da Silva Rocha.
  * https://github.com/rochars/byte-data
  */
+
+const endianness = __webpack_require__(8);
+const bitDepths = __webpack_require__(1);
 
 /**
  * Padding for binary strings.
@@ -158,6 +161,101 @@ function fixByteArraySize(byteArray, numZeros) {
     }
 }
 
+/**
+ * Swap the endianness to big endian.
+ * @param {!Array<number>} bytes The values.
+ * @param {boolean} isBigEndian True if the bytes should be big endian.
+ * @param {number} bitDepth The bitDepth of the data.
+ */
+function makeBigEndian(bytes, isBigEndian, bitDepth) {
+    if (isBigEndian) {
+        endianness.endianness(bytes, bitDepths.BitDepthOffsets[bitDepth]);
+    }
+}
+
+/**
+ * Turn bytes to base 2, 10 or 16.
+ * @param {!Array<string>|!Array<number>} bytes The bytes.
+ * @param {number} base The base.
+ * @param {Function} padFunction The function to use for padding.
+ */
+function bytesToBase(bytes, base, padFunction=padding) {
+    if (base != 10) {
+        let i = 0;
+        let len = bytes.length;
+        while (i < len) {
+            bytes[i] = bytes[i].toString(base);
+            padFunction(bytes, base, i);
+            i++;
+        }
+    }
+}
+
+/**
+ * Turn the output to the correct base.
+ * @param {!Array<number>} bytes The bytes.
+ * @param {number} bitDepth The bit depth of the data.
+ * @param {number} base The desired base for the output data.
+ */
+function outputToBase(bytes, bitDepth, base) {
+    if (bitDepth == 4) {
+        bytesToBase(bytes, base, paddingNibble);
+    } else if (bitDepth == 2) {
+        bytesToBase(bytes, base, paddingCrumb);
+    } else if(bitDepth == 1) {
+        bytesToBase(bytes, base, function(){});
+    }else {
+        bytesToBase(bytes, base);
+    }
+}
+
+/**
+ * Make a single value an array in case it is not.
+ * If the value is a string it stays a string.
+ * @param {!Array<number>|number|string} values The value or values.
+ * @return {!Array<number>|string}
+ */
+function turnToArray(values) {
+    if (!Array.isArray(values) && typeof values != "string") {
+        values = [values];
+    }
+    return values;
+}
+
+/**
+ * Turn a unsigned number to a signed number.
+ * @param {number} number The number.
+ * @param {number} maxValue The max range for the number bit depth.
+ */
+function signed(number, maxValue) {
+    if (number > parseInt(maxValue / 2, 10) - 1) {
+        number -= maxValue;
+    }
+    return number;
+}
+
+/**
+ * Turn bytes to base 10.
+ * @param {!Array<number>|Uint8Array} bytes The bytes as binary or hex strings.
+ * @param {number} base The base.
+ */
+function bytesToInt(bytes, base) {
+    if (base != 10) {
+        let i = 0;
+        let len = bytes.length;
+        while(i < len) {
+            bytes[i] = parseInt(bytes[i], base);
+            i++;
+        }
+    }
+}
+
+module.exports.makeBigEndian = makeBigEndian;
+module.exports.bytesToBase = bytesToBase;
+module.exports.outputToBase = outputToBase;
+module.exports.turnToArray = turnToArray;
+module.exports.signed = signed;
+module.exports.bytesToInt = bytesToInt;
 module.exports.fixByteArraySize = fixByteArraySize;
 module.exports.padding = padding;
 module.exports.paddingNibble = paddingNibble;
@@ -168,28 +266,6 @@ module.exports.lPadZeros = lPadZeros;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
-
-var int8 = new Int8Array(4)
-var int32 = new Int32Array(int8.buffer, 0, 1)
-var float32 = new Float32Array(int8.buffer, 0, 1)
-
-function pack(i) {
-    int32[0] = i
-    return float32[0]
-}
-
-function unpack(f) {
-    float32[0] = f
-    return int32[0]
-}
-
-module.exports = pack
-module.exports.pack = pack
-module.exports.unpack = unpack
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports) {
 
 /*
@@ -235,63 +311,7 @@ module.exports.BitDepthMaxValues = BitDepthMaxValues;
 
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-/*!
- * endianness: Swap byte endianness in arrays.
- * Copyright (c) 2017 Rafael da Silva Rocha.
- * https://github.com/rochars/endianness
- *
- */
-
-/**
- * Swap the endianness of units of information in a array of bytes.
- * @param {!Array<number>|Uint8Array} bytes An array of bytes.
- * @param {number} offset The offset according to the bit depth.
- *  - 2 for 16-bit
- *  - 3 for 24-bit
- *  - 4 for 32-bit
- *  - 5 for 40-bit
- *  - 6 for 48-bit
- *  - 8 for 64-bit
- */
-function endianness(bytes, offset) {
-    let len = bytes.length;
-    let i = 0;
-    while (i < len) {
-        byteSwap(bytes, i, offset);
-        i+=offset;
-    }
-    return bytes;
-}
-
-/**
- * Swap the endianness of a unit of information in a array of bytes.
- * @param {!Array<number>|Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @param {number} numBytes The number of bytes according to
- *      the bit depth of the data.
- */
-function byteSwap(bytes, i, numBytes) {
-    let x = 0;
-    let y = numBytes - 1;
-    let limit = parseInt(numBytes / 2, 10);
-    let swap;
-    while(x < limit) {
-        swap = bytes[i+x];
-        bytes[i+x] = bytes[i+y];
-        bytes[i+y] = swap;
-        x++;
-        y--;
-    }
-}
-
-module.exports.endianness = endianness;
-
-
-/***/ }),
-/* 4 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -300,14 +320,14 @@ module.exports.endianness = endianness;
  * https://github.com/rochars/byte-data
  */
 
-const pad = __webpack_require__(0);
+const helpers = __webpack_require__(0);
 
 function getBinary(bytes, rev=false) {
     let binary = "";
     let i = 0;
     let bytesLength = bytes.length;
     while(i < bytesLength) {
-        let bits = pad.lPadZeros(bytes[i].toString(2), 8);
+        let bits = helpers.lPadZeros(bytes[i].toString(2), 8);
         if (rev) {
             binary = binary + bits;
         } else {
@@ -419,7 +439,29 @@ module.exports.toHalf = toHalf;
 
 
 /***/ }),
-/* 5 */
+/* 3 */
+/***/ (function(module, exports) {
+
+var int8 = new Int8Array(4)
+var int32 = new Int32Array(int8.buffer, 0, 1)
+var float32 = new Float32Array(int8.buffer, 0, 1)
+
+function pack(i) {
+    int32[0] = i
+    return float32[0]
+}
+
+function unpack(f) {
+    float32[0] = f
+    return int32[0]
+}
+
+module.exports = pack
+module.exports.pack = pack
+module.exports.unpack = unpack
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -430,7 +472,7 @@ module.exports.toHalf = toHalf;
  *
  */
 
-const byteData = __webpack_require__(6);
+const byteData = __webpack_require__(5);
 
 /**
  * Get the chunks of a RIFF file.
@@ -442,9 +484,7 @@ function getChunks(buffer, bigEndian=false) {
     return {
         "chunkId": getChunkId(buffer, 0),
         "chunkSize": getChunkSize(buffer, 0, bigEndian),
-        "format": byteData.fromBytes(
-                buffer.slice(8, 12), 8, {"char": true}
-            ),
+        "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
         "subChunks": getSubChunks(buffer, bigEndian)
     };
 }
@@ -459,25 +499,25 @@ function getSubChunks(buffer, bigEndian) {
     let chunks = [];
     let i = 12;
     while(i < buffer.length) {
-        let subChunkId = getChunkId(buffer, i);
-        let subChunkSize = getChunkSize(buffer, i, bigEndian);
-        if (subChunkId == "LIST") {
-            chunks.push({
-                    "subChunkId": subChunkId,
-                    "subChunkSize": subChunkSize,
-                    "subChunks": getSubChunks(
-                        buffer.slice(i, i + subChunkSize), bigEndian)
-                });
-        } else {
-            chunks.push({
-                    "subChunkId": subChunkId,
-                    "subChunkSize": subChunkSize,
-                    "subChunkData": buffer.slice(i + 8, i + 8 + subChunkSize)
-                });
-        }
-        i = i + 8 + subChunkSize;
+        chunks.push(getSubChunk(buffer, i, bigEndian));
+        i += 8 + chunks[chunks.length - 1].subChunkSize;
     }
     return chunks;
+}
+
+function getSubChunk(buffer, index, bigEndian) {
+    let chunk = {
+        "subChunkId": getChunkId(buffer, index),
+        "subChunkSize": getChunkSize(buffer, index, bigEndian)
+    };
+    if (chunk.subChunkId == "LIST") {
+        chunk.subChunks = getSubChunks(
+            buffer.slice(index, index + chunk.subChunkSize), bigEndian);
+    } else {
+        chunk.subChunkData = buffer.slice(
+            index + 8, index + 8 + chunk.subChunkSize);
+    }
+    return chunk;
 }
 
 /**
@@ -488,7 +528,7 @@ function getSubChunks(buffer, bigEndian) {
  */
 function getChunkId(buffer, index) {
     return byteData.fromBytes(
-            buffer.slice(index, index + 4), 8, {"char": true});
+        buffer.slice(index, index + 4), 8, {"char": true});
 }
 
 /**
@@ -499,16 +539,16 @@ function getChunkId(buffer, index) {
  */
 function getChunkSize(buffer, index, bigEndian) {
     return byteData.fromBytes(
-            buffer.slice(index + 4, index + 8),
-            32,
-            {'be': bigEndian, "single": true});
+        buffer.slice(index + 4, index + 8),
+        32,
+        {'be': bigEndian, "single": true});
 }
 
 window['getChunks'] = getChunks;
 
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -519,10 +559,10 @@ window['getChunks'] = getChunks;
  *
  */
 
-let toBytes = __webpack_require__(7);
+let toBytes = __webpack_require__(6);
 let fromBytes = __webpack_require__(9);
 let bitPacker = __webpack_require__(11);
-let bitDepth = __webpack_require__(2);
+let bitDepth = __webpack_require__(1);
 
 /**
  * Find and return the start index of some string.
@@ -577,7 +617,7 @@ module.exports.str = {"char": true};
 
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -586,11 +626,8 @@ module.exports.str = {"char": true};
  * https://github.com/rochars/byte-data
  */
 
-const intBits = __webpack_require__(1);
-const pad = __webpack_require__(0);
-const endianness = __webpack_require__(3);
-const writer = __webpack_require__(8);
-const bitDepths = __webpack_require__(2);
+const writer = __webpack_require__(7);
+const helpers = __webpack_require__(0);
 
 /**
  * Turn numbers and strings to bytes.
@@ -607,51 +644,15 @@ const bitDepths = __webpack_require__(2);
  *       Default is false (bytes are returned as a regular array).
  * @return {!Array<number>|Uint8Array} the data as a byte buffer.
  */
-function toBytes(values, bitDepth, options={}) {
-    if (!options.char && typeof values != "string") {
-        values = turnToArray(values);
-    }
-    let base = 10;
-    if ("base" in options) {
-        base = options.base;
-    }
+function toBytes(values, bitDepth, options={"base": 10}) {
+    values = helpers.turnToArray(values);
     let bytes = writeBytes(values, options.char, options.float, bitDepth);
-    makeBigEndian(bytes, options.be, bitDepth);
-    outputToBase(bytes, bitDepth, base);
+    helpers.makeBigEndian(bytes, options.be, bitDepth);
+    helpers.outputToBase(bytes, bitDepth, options.base);
     if (options.buffer) {
         bytes = new Uint8Array(bytes);
     }
     return bytes;
-}
-
-/**
- * Make a single value an array in case it is not.
- * @param {!Array<number>|number|string} values The value or values.
- * @return {!Array<number>}
- */
-function turnToArray(values) {
-    if (!Array.isArray(values)) {
-        values = [values];
-    }
-    return values;
-}
-
-/**
- * Turn the output to the correct base.
- * @param {!Array<number>} bytes The bytes.
- * @param {number} bitDepth The bit depth of the data.
- * @param {number} base The desired base for the output data.
- */
-function outputToBase(bytes, bitDepth, base) {
-    if (bitDepth == 4) {
-        bytesToBase(bytes, base, pad.paddingNibble);
-    } else if (bitDepth == 2) {
-        bytesToBase(bytes, base, pad.paddingCrumb);
-    } else if(bitDepth == 1) {
-        bytesToBase(bytes, base, function(){});
-    }else {
-        bytesToBase(bytes, base);
-    }
 }
 
 /**
@@ -680,41 +681,11 @@ function writeBytes(values, isChar, isFloat, bitDepth) {
     return bytes;
 }
 
-/**
- * Write values as bytes.
- * @param {!Array<number>} bytes The values.
- * @param {boolean} isBigEndian True if the bytes should be big endian.
- * @param {number} bitDepth The bitDepth of the data.
- */
-function makeBigEndian(bytes, isBigEndian, bitDepth) {
-    if (isBigEndian) {
-        endianness.endianness(bytes, bitDepths.BitDepthOffsets[bitDepth]);
-    }
-}
-
-/**
- * Turn bytes to base.
- * @param {!Array<string>|!Array<number>} bytes The bytes.
- * @param {number} base The base.
- * @param {Function} padFunction The function to use for padding.
- */
-function bytesToBase(bytes, base, padFunction=pad.padding) {
-    if (base != 10) {
-        let i = 0;
-        let len = bytes.length;
-        while (i < len) {
-            bytes[i] = bytes[i].toString(base);
-            padFunction(bytes, base, i);
-            i++;
-        }
-    }
-}
-
 module.exports.toBytes = toBytes;
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -723,8 +694,8 @@ module.exports.toBytes = toBytes;
  * https://github.com/rochars/byte-data
  */
 
-const float = __webpack_require__(4);
-const intBits = __webpack_require__(1);
+const float = __webpack_require__(2);
+const intBits = __webpack_require__(3);
 
 function write64Bit(bytes, numbers, i, j) {
     let bits = float.toFloat64(numbers[i]);
@@ -831,6 +802,64 @@ module.exports.writeString = writeString;
 
 
 /***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+/*!
+ * endianness
+ * Swap endianness in byte arrays.
+ * Copyright (c) 2017 Rafael da Silva Rocha.
+ * https://github.com/rochars/endianness
+ *
+ */
+
+/**
+ * Swap the endianness of units of information in a byte array.
+ * The original array is modified in-place.
+ * @param {!Array<number>|!Array<string>|Uint8Array} bytes The bytes.
+ * @param {number} offset The byte offset according to the bit depth.
+ *  - 2 for 16-bit
+ *  - 3 for 24-bit
+ *  - 4 for 32-bit
+ *  - 5 for 40-bit
+ *  - 6 for 48-bit
+ *  - 7 for 56-bit
+ *  - 8 for 64-bit
+ */
+function endianness(bytes, offset) {
+    let len = bytes.length;
+    let i = 0;
+    while (i < len) {
+        byteSwap(bytes, offset, i);
+        i += offset;
+    }
+}
+
+/**
+ * Swap the endianness of a unit of information in a array of bytes.
+ * The original array is modified in-place.
+ * @param {!Array<number>|!Array<string>|Uint8Array} bytes The bytes.
+ * @param {number} offset The number of bytes according to the bit depth.
+ * @param {number} index The start index of the unit of information.
+ */
+function byteSwap(bytes, offset, index) {
+    let x = 0;
+    let y = offset - 1;
+    let limit = parseInt(offset / 2, 10);
+    let swap;
+    while(x < limit) {
+        swap = bytes[index + x];
+        bytes[index + x] = bytes[index + y];
+        bytes[index + y] = swap;
+        x++;
+        y--;
+    }
+}
+
+module.exports.endianness = endianness;
+
+
+/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -840,9 +869,9 @@ module.exports.writeString = writeString;
  * https://github.com/rochars/byte-data
  */
 
-const endianness = __webpack_require__(3);
 const reader = __webpack_require__(10);
-const bitDepths = __webpack_require__(2);
+const bitDepths = __webpack_require__(1);
+const helpers = __webpack_require__(0);
 
 /**
  * Turn a byte buffer into what the bytes represent.
@@ -860,17 +889,15 @@ const bitDepths = __webpack_require__(2);
  *       Default is false.
  * @return {!Array<number>|string}
  */
-function fromBytes(buffer, bitDepth, options={}) {
-    let base = 10;
-    if ("base" in options) {
-        base = options.base;
-    }
-    if (options.be) {
-        endianness.endianness(buffer, bitDepth / 8);
-    }
-    bytesToInt(buffer, base);
-    let bitReader = getBitReader(bitDepth, options.float, options.char);
-    let values = readBytes(buffer, bitDepth, options.signed, bitReader);
+function fromBytes(buffer, bitDepth, options={"base": 10}) {
+    helpers.makeBigEndian(buffer, options.be, bitDepth);
+    helpers.bytesToInt(buffer, options.base);
+    let values = readBytes(
+            buffer,
+            bitDepth,
+            options.signed,
+            getBitReader(bitDepth, options.float, options.char)
+        );
     if (options.char) {
         values = values.join("");
     }
@@ -895,7 +922,7 @@ function readBytes(bytes, bitDepth, isSigned, bitReader) {
     let offset = bitDepths.BitDepthOffsets[bitDepth];
     let len = bytes.length - (offset -1);
     let maxBitDepthValue = bitDepths.BitDepthMaxValues[bitDepth];
-    let signFunction = isSigned ? signed : function(x,y){return x;};
+    let signFunction = isSigned ? helpers.signed : function(x,y){return x;};
     while (i < len) {
         values[j] = signFunction(bitReader(bytes, i), maxBitDepthValue);
         i += offset;
@@ -934,34 +961,6 @@ function getReaderFunctionName(bitDepth, isFloat) {
         (isFloat ? "Float" : "");
 }
 
-/**
- * Turn bytes to base 10.
- * @param {!Array<number>|Uint8Array} bytes The bytes as binary or hex strings.
- * @param {number} base The base.
- */
-function bytesToInt(bytes, base) {
-    if (base != 10) {
-        let i = 0;
-        let len = bytes.length;
-        while(i < len) {
-            bytes[i] = parseInt(bytes[i], base);
-            i++;
-        }
-    }
-}
-
-/**
- * Turn a unsigned number to a signed number.
- * @param {number} number The number.
- * @param {number} maxValue The max range for the number bit depth.
- */
-function signed(number, maxValue) {
-    if (number > parseInt(maxValue / 2, 10) - 1) {
-        number -= maxValue;
-    }
-    return number;
-}
-
 module.exports.fromBytes = fromBytes;
 
 
@@ -976,9 +975,9 @@ module.exports.fromBytes = fromBytes;
  */
 
 
-let pad = __webpack_require__(0);
-const float = __webpack_require__(4);
-const intBits = __webpack_require__(1);
+let helpers = __webpack_require__(0);
+const float = __webpack_require__(2);
+const intBits = __webpack_require__(3);
 
 /**
  * Read a group of bytes by turning it to bits.
@@ -994,7 +993,7 @@ function readBytesAsBits(bytes, i, numBytes) {
     let j = numBytes-1;
     let bits = "";
     while (j >= 0) {
-        bits += pad.bytePadding(bytes[j + i].toString(2), 2);
+        bits += helpers.bytePadding(bytes[j + i].toString(2), 2);
         j--;
     }
     return parseInt(bits, 2);
@@ -1138,7 +1137,7 @@ module.exports.read64Bit = read64Bit;
  * https://github.com/rochars/byte-data
  */
 
-let pad = __webpack_require__(0);
+let helpers = __webpack_require__(0);
 
 /**
  * Pack 2 nibbles in 1 byte.
@@ -1188,14 +1187,14 @@ function packCrumbs(crumbs) {
     let packed = [];
     let i = 0;
     let j = 0;
-    pad.fixByteArraySize(crumbs, 4);
+    helpers.fixByteArraySize(crumbs, 4);
     let len = crumbs.length - 3;
     while (i < len) {
         packed[j++] = parseInt(
-            pad.lPadZeros(crumbs[i].toString(2), 2) +
-            pad.lPadZeros(crumbs[i+1].toString(2), 2) +
-            pad.lPadZeros(crumbs[i+2].toString(2), 2) +
-            pad.lPadZeros(crumbs[i+3].toString(2), 2), 2);
+            helpers.lPadZeros(crumbs[i].toString(2), 2) +
+            helpers.lPadZeros(crumbs[i+1].toString(2), 2) +
+            helpers.lPadZeros(crumbs[i+2].toString(2), 2) +
+            helpers.lPadZeros(crumbs[i+3].toString(2), 2), 2);
         i+=4;
     }
     return packed;
@@ -1214,7 +1213,7 @@ function unpackCrumbs(crumbs) {
     let bitCrumb;
     console.log(len);
     while (i < len) {
-        bitCrumb = pad.lPadZeros(crumbs[i].toString(2), 8);
+        bitCrumb = helpers.lPadZeros(crumbs[i].toString(2), 8);
         unpacked[j++] = parseInt(bitCrumb[0] + bitCrumb[1], 2);
         unpacked[j++] = parseInt(bitCrumb[2] + bitCrumb[3], 2);
         unpacked[j++] = parseInt(bitCrumb[4] + bitCrumb[5], 2);
@@ -1233,7 +1232,7 @@ function packBooleans(booleans) {
     let packed = [];
     let i = 0;
     let j = 0;
-    pad.fixByteArraySize(booleans, 8);
+    helpers.fixByteArraySize(booleans, 8);
     let len = booleans.length - 7;
     while (i < len) {
         packed[j++] = parseInt(
@@ -1262,7 +1261,7 @@ function unpackBooleans(booleans) {
     let len = booleans.length;
     let bitBoolean;
     while (i < len) {
-        bitBoolean = pad.lPadZeros(booleans[i].toString(2), 8);
+        bitBoolean = helpers.lPadZeros(booleans[i].toString(2), 8);
         unpacked[j++] = parseInt(bitBoolean[0], 2);
         unpacked[j++] = parseInt(bitBoolean[1], 2);
         unpacked[j++] = parseInt(bitBoolean[2], 2);

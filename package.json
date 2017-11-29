@@ -30,7 +30,6 @@
     "build": "npm run qa && npm run pack"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
     "codecov": "^3.0.0",
     "google-closure-compiler-js": "^20170910.0.1",
     "jsdoc": "~3.5.5",
@@ -43,6 +42,6 @@
   },
   "main": "index.js",
   "dependencies": {
-    "byte-data": "0.5.0"
+    "byte-data": "0.5.1"
   }
 }

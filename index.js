@@ -18,9 +18,7 @@ function getChunks(buffer, bigEndian=false) {
     return {
         "chunkId": getChunkId(buffer, 0),
         "chunkSize": getChunkSize(buffer, 0, bigEndian),
-        "format": byteData.fromBytes(
-                buffer.slice(8, 12), 8, {"char": true}
-            ),
+        "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
         "subChunks": getSubChunks(buffer, bigEndian)
     };
 }
@@ -35,25 +33,25 @@ function getSubChunks(buffer, bigEndian) {
     let chunks = [];
     let i = 12;
     while(i < buffer.length) {
-        let subChunkId = getChunkId(buffer, i);
-        let subChunkSize = getChunkSize(buffer, i, bigEndian);
-        if (subChunkId == "LIST") {
-            chunks.push({
-                    "subChunkId": subChunkId,
-                    "subChunkSize": subChunkSize,
-                    "subChunks": getSubChunks(
-                        buffer.slice(i, i + subChunkSize), bigEndian)
-                });
-        } else {
-            chunks.push({
-                    "subChunkId": subChunkId,
-                    "subChunkSize": subChunkSize,
-                    "subChunkData": buffer.slice(i + 8, i + 8 + subChunkSize)
-                });
-        }
-        i = i + 8 + subChunkSize;
+        chunks.push(getSubChunk(buffer, i, bigEndian));
+        i += 8 + chunks[chunks.length - 1].subChunkSize;
     }
     return chunks;
+}
+
+function getSubChunk(buffer, index, bigEndian) {
+    let chunk = {
+        "subChunkId": getChunkId(buffer, index),
+        "subChunkSize": getChunkSize(buffer, index, bigEndian)
+    };
+    if (chunk.subChunkId == "LIST") {
+        chunk.subChunks = getSubChunks(
+            buffer.slice(index, index + chunk.subChunkSize), bigEndian);
+    } else {
+        chunk.subChunkData = buffer.slice(
+            index + 8, index + 8 + chunk.subChunkSize);
+    }
+    return chunk;
 }
 
 /**
@@ -64,7 +62,7 @@ function getSubChunks(buffer, bigEndian) {
  */
 function getChunkId(buffer, index) {
     return byteData.fromBytes(
-            buffer.slice(index, index + 4), 8, {"char": true});
+        buffer.slice(index, index + 4), 8, {"char": true});
 }
 
 /**
@@ -75,9 +73,9 @@ function getChunkId(buffer, index) {
  */
 function getChunkSize(buffer, index, bigEndian) {
     return byteData.fromBytes(
-            buffer.slice(index + 4, index + 8),
-            32,
-            {'be': bigEndian, "single": true});
+        buffer.slice(index + 4, index + 8),
+        32,
+        {'be': bigEndian, "single": true});
 }
 
 module.exports.getChunks = getChunks;
