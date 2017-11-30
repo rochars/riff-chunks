@@ -17,7 +17,7 @@ const fs = require("fs");
 let chunks = riffChunks(fs.readFileSync('file.wav'));
 ```
 
-## getChunks()
+## riffChunks()
 ```javascript
 /**
  * Get the chunks of a RIFF/RIFX file.
@@ -27,7 +27,7 @@ let chunks = riffChunks(fs.readFileSync('file.wav'));
 function riffChunks(buffer) {}
 ```
 
-**getChunks()** returns a structure like this:
+**riffChunks()** returns a structure like this:
 ```
 {
     "chunkId": string,

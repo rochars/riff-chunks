@@ -456,7 +456,7 @@ function unpack(f) {
     return int32[0]
 }
 
-window['getChunks'] = pack
+window['riffChunks'] = pack
 module.exports.pack = pack
 module.exports.unpack = unpack
 
@@ -545,7 +545,7 @@ function getChunkSize(buffer, index, bigEndian) {
         {'be': bigEndian, "single": true});
 }
 
-window['getChunks'] = riffChunks;
+window['riffChunks'] = riffChunks;
 
 
 /***/ }),
@@ -584,7 +584,7 @@ function findString(bytes, chunk) {
     return -1;
 }
 
-window['getChunks'].findString = findString;
+window['riffChunks'].findString = findString;
 
 module.exports.toBytes = toBytes.toBytes;
 module.exports.fromBytes = fromBytes.fromBytes;
@@ -857,7 +857,7 @@ function byteSwap(bytes, offset, index) {
     }
 }
 
-window['getChunks'].endianness = endianness;
+window['riffChunks'].endianness = endianness;
 
 
 /***/ }),

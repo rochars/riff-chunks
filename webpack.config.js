@@ -18,7 +18,7 @@ module.exports = {
           multiple: [
             {
               search: 'module.exports',
-              replace: "window['getChunks']"
+              replace: "window['riffChunks']"
             }
           ]
         }
