@@ -10,7 +10,16 @@ describe("interface", function() {
 
     const riffChunks = require("../index.js");
     
-    it("Should have the riffChunks function available", function() {
-        assert.ok(riffChunks([]));
+    it("Should have the read() function available", function() {
+        assert.ok(riffChunks.read([]));
+    });
+    it("Should have the write() function available", function() {
+        assert.ok(riffChunks.write({
+                    "chunkId": "RIFF", 
+                    "chunkSize": 0,
+                    "format": "WAVE",
+                    "subChunks": []
+                })
+            );
     });
 });

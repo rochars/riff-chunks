@@ -17,8 +17,13 @@ module.exports = {
         query: {
           multiple: [
             {
-              search: 'module.exports',
-              replace: "window['riffChunks']"
+              search: 'module.exports.read',
+              replace: "window['riffChunks'] = window['riffChunks'] || {};" + 
+                       "window['riffChunks']['read']"
+            },
+            {
+              search: 'module.exports.write',
+              replace: "window['riffChunks']['write']"
             }
           ]
         }

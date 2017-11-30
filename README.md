@@ -1,5 +1,5 @@
 # riff-chunks
-Get the chunks of RIFF and RIFX files.  
+Get and set the chunks of RIFF and RIFX files.  
 Copyright (c) 2017 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
@@ -14,20 +14,22 @@ npm install riff-chunks
 ```javascript
 const riffChunks = require("riff-chunks");
 const fs = require("fs");
-let chunks = riffChunks(fs.readFileSync('file.wav'));
+
+let chunks = riffChunks.read(fs.readFileSync("file.wav"));
+fs.writeFileSync("output.wav", riffChunks.write(chunks));
 ```
 
-## riffChunks()
+## riffChunks.read()
 ```javascript
 /**
  * Get the chunks of a RIFF/RIFX file.
  * @param {Uint8Array|!Array<number>} buffer The file bytes.
- * @return {Object}
+ * @return {Object} The RIFF file chunks.
  */
-function riffChunks(buffer) {}
+function read(buffer) {}
 ```
 
-**riffChunks()** returns a structure like this:
+**riffChunks.read()** returns a structure like this:
 ```
 {
     "chunkId": string,
@@ -35,22 +37,24 @@ function riffChunks(buffer) {}
     "format": string,
     "subChunks": [
         {
-            "subChunkId": string,
-            "subChunkSize": number,
-            "subChunkData": Array<number>
+            "chunkId": string,
+            "chunkSize": number,
+            "chunkData": Array<number>
         },
     ]
 }
 ```
 
-The **subChunkData** field contains the raw bytes of the chunk data.
+The **chunkData** field contains the raw bytes of the chunk data.
 
-## Browser
-```html
-<script src="riff-chunks-min.js"></script>
-<script>
-    var chunks = riffChunks(waveFile);
-</script>
+## riffChunks.write()
+```javascript
+/**
+ * Write the bytes of a RIFF/RIFX file.
+ * @param {Object} chunks A structure like the return of riffChunks.read().
+ * @return {Uint8Array} The file bytes.
+ */
+function write(chunks) {}
 ```
 
 ## LICENSE

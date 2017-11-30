@@ -231,7 +231,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line64">line 64</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line118">line 118</a>
     </li></ul></dd>
     
 
@@ -410,7 +410,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line75">line 75</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line129">line 129</a>
     </li></ul></dd>
     
 
@@ -589,7 +589,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line33">line 33</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line86">line 86</a>
     </li></ul></dd>
     
 
@@ -641,7 +641,7 @@
     
 
     
-    <h4 class="name" id="riffChunks"><span class="type-signature"></span>riffChunks<span class="signature">(buffer)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="read"><span class="type-signature"></span>read<span class="signature">(buffer)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -745,7 +745,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line16">line 16</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line41">line 41</a>
     </li></ul></dd>
     
 
@@ -792,6 +792,377 @@
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id="write"><span class="type-signature"></span>write<span class="signature">(chunks, bigEndian)</span><span class="type-signature"> &rarr; {Array.&lt;number>|Uint8Array}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Write the bytes of a RIFF/RIFX file.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>chunks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">A structure like the return of riffChunks.read().</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bigEndian</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">if the bytes should be big endian.     "RIFX" chunkId will always set bigEndian to true.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The:     - file bytes as Uint8Array when chunkId is "RIFF" or "RIFX" or     - chunk bytes as Array<number> if chunkId is "LIST".
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;number></span>
+|
+
+<span class="param-type">Uint8Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="writeSubChunks"><span class="type-signature"></span>writeSubChunks<span class="signature">(chunks, bigEndian)</span><span class="type-signature"> &rarr; {Array.&lt;number>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Write the sub chunks of a RIFF file.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>chunks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The chunks.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bigEndian</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">true if its RIFX.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line60">line 60</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;number></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
     
 
     
@@ -807,13 +1178,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#getChunkId">getChunkId</a></li><li><a href="global.html#getChunkSize">getChunkSize</a></li><li><a href="global.html#getSubChunks">getSubChunks</a></li><li><a href="global.html#riffChunks">riffChunks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#getChunkId">getChunkId</a></li><li><a href="global.html#getChunkSize">getChunkSize</a></li><li><a href="global.html#getSubChunks">getSubChunks</a></li><li><a href="global.html#read">read</a></li><li><a href="global.html#write">write</a></li><li><a href="global.html#writeSubChunks">writeSubChunks</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 30 2017 02:26:37 GMT-0200 (Horário brasileiro de verão)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 30 2017 07:03:08 GMT-0200 (Horário brasileiro de verão)
 </footer>
 
 <script> prettyPrint(); </script>
