@@ -7,12 +7,12 @@
 var assert = require("assert");
 
 
-describe("interface", function() {
+describe("riffChunks vs RIFF WAVE", function() {
 
-    let riffChunks = require("../index.js");
-    let fs = require("fs");
+    const riffChunks = require("../index.js");
+    const fs = require("fs");
     
-    let chunks = riffChunks.getChunks(
+    let chunks = riffChunks(
         fs.readFileSync('./test/16bit-16kHz-2markers-mono.wav'));
     
     it("chunkId should be RIFF", function() {
@@ -21,7 +21,8 @@ describe("interface", function() {
     it("format should be WAVE", function() {
         assert.equal(chunks.format, "WAVE");
     });
-    it("subChunks length should be 4 (fmt, cue, data, LIST)", function() {
+    it("subChunks length should be 5 ('fmt ', 'junk', 'cue ', 'data', 'LIST')",
+            function() {
         assert.equal(chunks.subChunks.length, 5);
     });
     it("chunks.subChunks[0].subChunkId should be 'fmt '", function() {

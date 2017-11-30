@@ -17,7 +17,7 @@ module.exports = {
         query: {
           multiple: [
             {
-              search: 'module.exports.getChunks',
+              search: 'module.exports',
               replace: "window['getChunks']"
             }
           ]

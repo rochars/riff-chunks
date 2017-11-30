@@ -10,15 +10,21 @@ https://github.com/rochars/riff-chunks
 npm install riff-chunks
 ```
 
+## Use
+```javascript
+const riffChunks = require("riff-chunks");
+const fs = require("fs");
+let chunks = riffChunks(fs.readFileSync('file.wav'));
+```
+
 ## getChunks()
 ```javascript
 /**
- * Get the chunks of a RIFF file.
- * @param {Uint8Array|!Array<number>} buffer The RIFF file bytes.
- * @param {boolean} bigEndian true if its RIFX.
+ * Get the chunks of a RIFF/RIFX file.
+ * @param {Uint8Array|!Array<number>} buffer The file bytes.
  * @return {Object}
  */
-function getChunks(buffer, bigEndian=false) {}
+function riffChunks(buffer) {}
 ```
 
 **getChunks()** returns a structure like this:
@@ -39,7 +45,13 @@ function getChunks(buffer, bigEndian=false) {}
 
 The **subChunkData** field contains the raw bytes of the chunk data.
 
-**LIST** chunks have their own format identifier and subchunks.
+## Browser
+```html
+<script src="riff-chunks-min.js"></script>
+<script>
+    var chunks = riffChunks(waveFile);
+</script>
+```
 
 ## LICENSE
 Copyright (c) 2017 Rafael da Silva Rocha.

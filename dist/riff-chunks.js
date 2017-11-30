@@ -456,7 +456,7 @@ function unpack(f) {
     return int32[0]
 }
 
-module.exports = pack
+window['getChunks'] = pack
 module.exports.pack = pack
 module.exports.unpack = unpack
 
@@ -475,14 +475,15 @@ module.exports.unpack = unpack
 const byteData = __webpack_require__(5);
 
 /**
- * Get the chunks of a RIFF file.
- * @param {Uint8Array|!Array<number>} buffer The RIFF file bytes.
- * @param {boolean} bigEndian true if its RIFX.
+ * Get the chunks of a RIFF/RIFX file.
+ * @param {Uint8Array|!Array<number>} buffer The file bytes.
  * @return {Object}
  */
-function getChunks(buffer, bigEndian=false) {
+function riffChunks(buffer) {
+    let chunkId = getChunkId(buffer, 0);
+    let bigEndian = chunkId == "RIFX";
     return {
-        "chunkId": getChunkId(buffer, 0),
+        "chunkId": chunkId,
         "chunkSize": getChunkSize(buffer, 0, bigEndian),
         "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
         "subChunks": getSubChunks(buffer, bigEndian)
@@ -528,7 +529,7 @@ function getSubChunk(buffer, index, bigEndian) {
  */
 function getChunkId(buffer, index) {
     return byteData.fromBytes(
-        buffer.slice(index, index + 4), 8, {"char": true});
+        buffer.slice(index, index + 4), 8, byteData.str);
 }
 
 /**
@@ -544,7 +545,7 @@ function getChunkSize(buffer, index, bigEndian) {
         {'be': bigEndian, "single": true});
 }
 
-window['getChunks'] = getChunks;
+window['getChunks'] = riffChunks;
 
 
 /***/ }),
@@ -583,7 +584,7 @@ function findString(bytes, chunk) {
     return -1;
 }
 
-module.exports.findString = findString;
+window['getChunks'].findString = findString;
 
 module.exports.toBytes = toBytes.toBytes;
 module.exports.fromBytes = fromBytes.fromBytes;
@@ -856,7 +857,7 @@ function byteSwap(bytes, offset, index) {
     }
 }
 
-module.exports.endianness = endianness;
+window['getChunks'].endianness = endianness;
 
 
 /***/ }),

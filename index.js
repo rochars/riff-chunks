@@ -9,14 +9,15 @@
 const byteData = require("byte-data");
 
 /**
- * Get the chunks of a RIFF file.
- * @param {Uint8Array|!Array<number>} buffer The RIFF file bytes.
- * @param {boolean} bigEndian true if its RIFX.
+ * Get the chunks of a RIFF/RIFX file.
+ * @param {Uint8Array|!Array<number>} buffer The file bytes.
  * @return {Object}
  */
-function getChunks(buffer, bigEndian=false) {
+function riffChunks(buffer) {
+    let chunkId = getChunkId(buffer, 0);
+    let bigEndian = chunkId == "RIFX";
     return {
-        "chunkId": getChunkId(buffer, 0),
+        "chunkId": chunkId,
         "chunkSize": getChunkSize(buffer, 0, bigEndian),
         "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
         "subChunks": getSubChunks(buffer, bigEndian)
@@ -62,7 +63,7 @@ function getSubChunk(buffer, index, bigEndian) {
  */
 function getChunkId(buffer, index) {
     return byteData.fromBytes(
-        buffer.slice(index, index + 4), 8, {"char": true});
+        buffer.slice(index, index + 4), 8, byteData.str);
 }
 
 /**
@@ -78,4 +79,4 @@ function getChunkSize(buffer, index, bigEndian) {
         {'be': bigEndian, "single": true});
 }
 
-module.exports.getChunks = getChunks;
+module.exports = riffChunks;
