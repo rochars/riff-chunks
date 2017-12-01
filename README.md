@@ -3,7 +3,7 @@ Get and set the chunks of RIFF and RIFX files.
 Copyright (c) 2017 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
-[![Travis](https://img.shields.io/travis/rochars/riff-chunks.svg?style=for-the-badge)](https://travis-ci.org/rochars/riff-chunks) [![AppVeyor](https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=for-the-badge&logo=appveyor)](https://ci.appveyor.com/project/rochars/riff-chunks) [![Codecov](https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=for-the-badge)](https://codecov.io/gh/rochars/riff-chunks) [![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks)
+[![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html)
 
 ## Install
 ```

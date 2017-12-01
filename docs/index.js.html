@@ -2,22 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: index.js</title>
+    <title>index.js - Documentation</title>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Source: index.js</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#getChunkId">getChunkId</a></li><li><a href="global.html#getChunkSize">getChunkSize</a></li><li><a href="global.html#getSubChunk">getSubChunk</a></li><li><a href="global.html#getSubChunks">getSubChunks</a></li><li><a href="global.html#read">read</a></li><li><a href="global.html#write">write</a></li><li><a href="global.html#writeSubChunks">writeSubChunks</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">index.js</h1>
+    
 
     
 
@@ -35,6 +46,8 @@
  */
 
 const byteData = require("byte-data");
+const uInt32 = byteData.uInt32;
+const char = byteData.char;
 
 /**
  * Write the bytes of a RIFF/RIFX file.
@@ -47,13 +60,13 @@ const byteData = require("byte-data");
  */
 function write(chunks, bigEndian=false) {
     if (!bigEndian) {
-        bigEndian = chunks.chunkId == "RIFX";
+        uInt32.be = chunks.chunkId == "RIFX";
     }
     let bytes =
-        byteData.toBytes(chunks.chunkId, 8, byteData.char).concat(
-                byteData.toBytes(chunks.chunkSize, 32, {'be': bigEndian}),
-                byteData.toBytes(chunks.format, 8, byteData.char),
-                writeSubChunks(chunks.subChunks, bigEndian)
+        byteData.packSequence(chunks.chunkId, char).concat(
+                byteData.pack(chunks.chunkSize, uInt32),
+                byteData.packSequence(chunks.format, char),
+                writeSubChunks(chunks.subChunks, uInt32.be)
             );
     if (chunks.chunkId == "RIFF" || chunks.chunkId == "RIFX" ) {
         bytes = new Uint8Array(bytes);
@@ -69,13 +82,13 @@ function write(chunks, bigEndian=false) {
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId(buffer, 0);
-    let bigEndian = (chunkId == "RIFX");
-    let chunkSize = getChunkSize(buffer, 0, bigEndian);
+    uInt32.be = chunkId == "RIFX";
+    let chunkSize = getChunkSize(buffer, 0);
     return {
         "chunkId": chunkId,
         "chunkSize": chunkSize,
-        "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
-        "subChunks": getSubChunks(buffer, bigEndian)
+        "format": byteData.unpackSequence(buffer.slice(8, 12), char),
+        "subChunks": getSubChunks(buffer)
     };
 }
 
@@ -93,10 +106,8 @@ function writeSubChunks(chunks, bigEndian) {
             subChunks = subChunks.concat(write(chunks[i], bigEndian));
         } else {
             subChunks = subChunks.concat(
-                byteData.toBytes(
-                    chunks[i].chunkId, 8, byteData.char),
-                byteData.toBytes(
-                    chunks[i].chunkSize, 32, {'be': bigEndian}),
+                byteData.packSequence(chunks[i].chunkId, char),
+                byteData.pack(chunks[i].chunkSize, uInt32),
                 chunks[i].chunkData
             );
         }
@@ -108,29 +119,33 @@ function writeSubChunks(chunks, bigEndian) {
 /**
  * Get the sub chunks of a RIFF file.
  * @param {Uint8Array|!Array&lt;number>} buffer the RIFF file bytes.
- * @param {boolean} bigEndian true if its RIFX.
  * @return {Object}
  */
-function getSubChunks(buffer, bigEndian) {
+function getSubChunks(buffer) {
     let chunks = [];
     let i = 12;
     while(i &lt; buffer.length) {
-        chunks.push(getSubChunk(buffer, i, bigEndian));
+        chunks.push(getSubChunk(buffer, i));
         i += 8 + chunks[chunks.length - 1].chunkSize;
     }
     return chunks;
 }
 
-function getSubChunk(buffer, index, bigEndian) {
+/**
+ * Get a sub chunk from a RIFF file.
+ * @param {Uint8Array|!Array&lt;number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {Object}
+ */
+function getSubChunk(buffer, index) {
     let chunk = {
         "chunkId": getChunkId(buffer, index),
-        "chunkSize": getChunkSize(buffer, index, bigEndian)
+        "chunkSize": getChunkSize(buffer, index)
     };
     if (chunk.chunkId == "LIST") {
-        chunk.format = byteData.fromBytes(
-            buffer.slice(8, 12), 8, byteData.str);
+        chunk.format = byteData.unpackSequence(buffer.slice(8, 12), char);
         chunk.subChunks = getSubChunks(
-            buffer.slice(index, index + chunk.chunkSize), bigEndian);
+            buffer.slice(index, index + chunk.chunkSize));
     } else {
         chunk.chunkData = buffer.slice(index + 8, index + 8 + chunk.chunkSize);
     }
@@ -144,8 +159,7 @@ function getSubChunk(buffer, index, bigEndian) {
  * @return {string}
  */
 function getChunkId(buffer, index) {
-    return byteData.fromBytes(
-        buffer.slice(index, index + 4), 8, byteData.str);
+    return byteData.unpackSequence(buffer.slice(index, index + 4), char);
 }
 
 /**
@@ -154,12 +168,8 @@ function getChunkId(buffer, index) {
  * @param {number} index The start index of the chunk.
  * @return {number}
  */
-function getChunkSize(buffer, index, bigEndian) {
-    return byteData.fromBytes(
-            buffer.slice(index + 4, index + 8),
-            32,
-            {'be': bigEndian, "single": true}
-        );
+function getChunkSize(buffer, index) {
+    return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32);
 }
 
 module.exports.read = read;
@@ -173,17 +183,13 @@ module.exports.write = write;
 
 </div>
 
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#getChunkId">getChunkId</a></li><li><a href="global.html#getChunkSize">getChunkSize</a></li><li><a href="global.html#getSubChunks">getSubChunks</a></li><li><a href="global.html#read">read</a></li><li><a href="global.html#write">write</a></li><li><a href="global.html#writeSubChunks">writeSubChunks</a></li></ul>
-</nav>
-
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 30 2017 07:03:08 GMT-0200 (Horário brasileiro de verão)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Nov 30 2017 23:01:11 GMT-0200 (Horário brasileiro de verão) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
 </body>
 </html>

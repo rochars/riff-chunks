@@ -7,6 +7,8 @@
  */
 
 const byteData = require("byte-data");
+const uInt32 = byteData.uInt32;
+const char = byteData.char;
 
 /**
  * Write the bytes of a RIFF/RIFX file.
@@ -19,13 +21,13 @@ const byteData = require("byte-data");
  */
 function write(chunks, bigEndian=false) {
     if (!bigEndian) {
-        bigEndian = chunks.chunkId == "RIFX";
+        uInt32.be = chunks.chunkId == "RIFX";
     }
     let bytes =
-        byteData.toBytes(chunks.chunkId, 8, byteData.char).concat(
-                byteData.toBytes(chunks.chunkSize, 32, {'be': bigEndian}),
-                byteData.toBytes(chunks.format, 8, byteData.char),
-                writeSubChunks(chunks.subChunks, bigEndian)
+        byteData.packSequence(chunks.chunkId, char).concat(
+                byteData.pack(chunks.chunkSize, uInt32),
+                byteData.packSequence(chunks.format, char),
+                writeSubChunks(chunks.subChunks, uInt32.be)
             );
     if (chunks.chunkId == "RIFF" || chunks.chunkId == "RIFX" ) {
         bytes = new Uint8Array(bytes);
@@ -41,13 +43,13 @@ function write(chunks, bigEndian=false) {
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId(buffer, 0);
-    let bigEndian = (chunkId == "RIFX");
-    let chunkSize = getChunkSize(buffer, 0, bigEndian);
+    uInt32.be = chunkId == "RIFX";
+    let chunkSize = getChunkSize(buffer, 0);
     return {
         "chunkId": chunkId,
         "chunkSize": chunkSize,
-        "format": byteData.fromBytes(buffer.slice(8, 12), 8, byteData.str),
-        "subChunks": getSubChunks(buffer, bigEndian)
+        "format": byteData.unpackSequence(buffer.slice(8, 12), char),
+        "subChunks": getSubChunks(buffer)
     };
 }
 
@@ -65,10 +67,8 @@ function writeSubChunks(chunks, bigEndian) {
             subChunks = subChunks.concat(write(chunks[i], bigEndian));
         } else {
             subChunks = subChunks.concat(
-                byteData.toBytes(
-                    chunks[i].chunkId, 8, byteData.char),
-                byteData.toBytes(
-                    chunks[i].chunkSize, 32, {'be': bigEndian}),
+                byteData.packSequence(chunks[i].chunkId, char),
+                byteData.pack(chunks[i].chunkSize, uInt32),
                 chunks[i].chunkData
             );
         }
@@ -80,29 +80,33 @@ function writeSubChunks(chunks, bigEndian) {
 /**
  * Get the sub chunks of a RIFF file.
  * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {boolean} bigEndian true if its RIFX.
  * @return {Object}
  */
-function getSubChunks(buffer, bigEndian) {
+function getSubChunks(buffer) {
     let chunks = [];
     let i = 12;
     while(i < buffer.length) {
-        chunks.push(getSubChunk(buffer, i, bigEndian));
+        chunks.push(getSubChunk(buffer, i));
         i += 8 + chunks[chunks.length - 1].chunkSize;
     }
     return chunks;
 }
 
-function getSubChunk(buffer, index, bigEndian) {
+/**
+ * Get a sub chunk from a RIFF file.
+ * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {Object}
+ */
+function getSubChunk(buffer, index) {
     let chunk = {
         "chunkId": getChunkId(buffer, index),
-        "chunkSize": getChunkSize(buffer, index, bigEndian)
+        "chunkSize": getChunkSize(buffer, index)
     };
     if (chunk.chunkId == "LIST") {
-        chunk.format = byteData.fromBytes(
-            buffer.slice(8, 12), 8, byteData.str);
+        chunk.format = byteData.unpackSequence(buffer.slice(8, 12), char);
         chunk.subChunks = getSubChunks(
-            buffer.slice(index, index + chunk.chunkSize), bigEndian);
+            buffer.slice(index, index + chunk.chunkSize));
     } else {
         chunk.chunkData = buffer.slice(index + 8, index + 8 + chunk.chunkSize);
     }
@@ -116,8 +120,7 @@ function getSubChunk(buffer, index, bigEndian) {
  * @return {string}
  */
 function getChunkId(buffer, index) {
-    return byteData.fromBytes(
-        buffer.slice(index, index + 4), 8, byteData.str);
+    return byteData.unpackSequence(buffer.slice(index, index + 4), char);
 }
 
 /**
@@ -126,12 +129,8 @@ function getChunkId(buffer, index) {
  * @param {number} index The start index of the chunk.
  * @return {number}
  */
-function getChunkSize(buffer, index, bigEndian) {
-    return byteData.fromBytes(
-            buffer.slice(index + 4, index + 8),
-            32,
-            {'be': bigEndian, "single": true}
-        );
+function getChunkSize(buffer, index) {
+    return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32);
 }
 
 module.exports.read = read;
