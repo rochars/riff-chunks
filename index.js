@@ -8,7 +8,7 @@
 
 const byteData = require("byte-data");
 const uInt32 = byteData.uInt32;
-const char = byteData.char;
+const chr = byteData.chr;
 
 /**
  * Write the bytes of a RIFF/RIFX file.
@@ -24,9 +24,9 @@ function write(chunks, bigEndian=false) {
         uInt32.be = chunks.chunkId == "RIFX";
     }
     let bytes =
-        byteData.packSequence(chunks.chunkId, char).concat(
+        byteData.packArray(chunks.chunkId, chr).concat(
                 byteData.pack(chunks.chunkSize, uInt32),
-                byteData.packSequence(chunks.format, char),
+                byteData.packArray(chunks.format, chr),
                 writeSubChunks(chunks.subChunks, uInt32.be)
             );
     if (chunks.chunkId == "RIFF" || chunks.chunkId == "RIFX" ) {
@@ -48,7 +48,7 @@ function read(buffer) {
     return {
         "chunkId": chunkId,
         "chunkSize": chunkSize,
-        "format": byteData.unpackSequence(buffer.slice(8, 12), char),
+        "format": byteData.unpackArray(buffer.slice(8, 12), chr),
         "subChunks": getSubChunks(buffer)
     };
 }
@@ -67,7 +67,7 @@ function writeSubChunks(chunks, bigEndian) {
             subChunks = subChunks.concat(write(chunks[i], bigEndian));
         } else {
             subChunks = subChunks.concat(
-                byteData.packSequence(chunks[i].chunkId, char),
+                byteData.packArray(chunks[i].chunkId, chr),
                 byteData.pack(chunks[i].chunkSize, uInt32),
                 chunks[i].chunkData
             );
@@ -104,7 +104,7 @@ function getSubChunk(buffer, index) {
         "chunkSize": getChunkSize(buffer, index)
     };
     if (chunk.chunkId == "LIST") {
-        chunk.format = byteData.unpackSequence(buffer.slice(8, 12), char);
+        chunk.format = byteData.unpackArray(buffer.slice(8, 12), chr);
         chunk.subChunks = getSubChunks(
             buffer.slice(index, index + chunk.chunkSize));
     } else {
@@ -120,7 +120,7 @@ function getSubChunk(buffer, index) {
  * @return {string}
  */
 function getChunkId(buffer, index) {
-    return byteData.unpackSequence(buffer.slice(index, index + 4), char);
+    return byteData.unpackArray(buffer.slice(index, index + 4), chr);
 }
 
 /**

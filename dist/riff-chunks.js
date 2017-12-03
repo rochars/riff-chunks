@@ -88,18 +88,18 @@ function padding(bytes, base, index) {
 
 /**
  * Padding with 0s for byte strings.
- * @param {string} byte The byte as a binary or hex string.
+ * @param {string} theByte The byte as a binary or hex string.
  * @param {number} base The base.
  * @returns {string} The padded byte.
  */
-function bytePadding(byte, base) {
-    let offset = byte.length + 1;
+function bytePadding(theByte, base) {
+    let offset = theByte.length + 1;
     if (base == 2) {
         offset = 8;
     } else if (base == 16) {
         offset = 2;
     }
-    return lPadZeros(byte, offset);
+    return lPadZeros(theByte, offset);
 }
 
 /**
@@ -223,14 +223,14 @@ function turnToArray(values) {
 
 /**
  * Turn a unsigned number to a signed number.
- * @param {number} number The number.
+ * @param {number} num The number.
  * @param {number} maxValue The max range for the number bit depth.
  */
-function signed(number, maxValue) {
-    if (number > parseInt(maxValue / 2, 10) - 1) {
-        number -= maxValue;
+function signed(num, maxValue) {
+    if (num > parseInt(maxValue / 2, 10) - 1) {
+        num -= maxValue;
     }
-    return number;
+    return num;
 }
 
 /**
@@ -295,6 +295,7 @@ const BitDepthOffsets = {
  * @enum {number}
  */
 const BitDepthMaxValues = {
+    1: 2,
     2: 4,
     4: 16,
     8: 256,
@@ -302,7 +303,8 @@ const BitDepthMaxValues = {
     24: 16777216,
     32: 4294967296,
     40: 1099511627776,
-    48: 281474976710656
+    48: 281474976710656,
+    64: Infinity // FIXME 53-bit limit!
 };
 
 module.exports.BitDepthOffsets = BitDepthOffsets;
@@ -473,7 +475,7 @@ module.exports.unpack = unpack
 
 const byteData = __webpack_require__(5);
 const uInt32 = byteData.uInt32;
-const char = byteData.char;
+const chr = byteData.chr;
 
 /**
  * Write the bytes of a RIFF/RIFX file.
@@ -489,9 +491,9 @@ function write(chunks, bigEndian=false) {
         uInt32.be = chunks.chunkId == "RIFX";
     }
     let bytes =
-        byteData.packSequence(chunks.chunkId, char).concat(
+        byteData.packArray(chunks.chunkId, chr).concat(
                 byteData.pack(chunks.chunkSize, uInt32),
-                byteData.packSequence(chunks.format, char),
+                byteData.packArray(chunks.format, chr),
                 writeSubChunks(chunks.subChunks, uInt32.be)
             );
     if (chunks.chunkId == "RIFF" || chunks.chunkId == "RIFX" ) {
@@ -513,7 +515,7 @@ function read(buffer) {
     return {
         "chunkId": chunkId,
         "chunkSize": chunkSize,
-        "format": byteData.unpackSequence(buffer.slice(8, 12), char),
+        "format": byteData.unpackArray(buffer.slice(8, 12), chr),
         "subChunks": getSubChunks(buffer)
     };
 }
@@ -532,7 +534,7 @@ function writeSubChunks(chunks, bigEndian) {
             subChunks = subChunks.concat(write(chunks[i], bigEndian));
         } else {
             subChunks = subChunks.concat(
-                byteData.packSequence(chunks[i].chunkId, char),
+                byteData.packArray(chunks[i].chunkId, chr),
                 byteData.pack(chunks[i].chunkSize, uInt32),
                 chunks[i].chunkData
             );
@@ -569,7 +571,7 @@ function getSubChunk(buffer, index) {
         "chunkSize": getChunkSize(buffer, index)
     };
     if (chunk.chunkId == "LIST") {
-        chunk.format = byteData.unpackSequence(buffer.slice(8, 12), char);
+        chunk.format = byteData.unpackArray(buffer.slice(8, 12), chr);
         chunk.subChunks = getSubChunks(
             buffer.slice(index, index + chunk.chunkSize));
     } else {
@@ -585,7 +587,7 @@ function getSubChunk(buffer, index) {
  * @return {string}
  */
 function getChunkId(buffer, index) {
-    return byteData.unpackSequence(buffer.slice(index, index + 4), char);
+    return byteData.unpackArray(buffer.slice(index, index + 4), chr);
 }
 
 /**
@@ -650,7 +652,7 @@ function pack(value, type, base=10) {
     theType.base = base;
     theType.single = true;
     value = theType.char ? value[0] : value;
-    return toBytes.toBytes(value, theType.bitDepth, theType);
+    return toBytes.toBytes(value, theType.bits, theType);
 }
 
 /**
@@ -664,7 +666,7 @@ function unpack(buffer, type, base=10) {
     let theType = Object.assign({}, type);
     theType.base = base;
     theType.single = true;
-    return fromBytes.fromBytes(buffer, theType.bitDepth, theType);
+    return fromBytes.fromBytes(buffer, theType.bits, theType);
 }
 
 /**
@@ -674,11 +676,11 @@ function unpack(buffer, type, base=10) {
  * @param {number} base The base of the input. Optional. Default is 10.
  * @return {!Array<number>|!Array<string>}
  */
-function packSequence(values, type, base=10) {
+function packArray(values, type, base=10) {
     let theType = Object.assign({}, type);
     theType.base = base;
     theType.single = false;
-    return toBytes.toBytes(values, theType.bitDepth, theType);
+    return toBytes.toBytes(values, theType.bits, theType);
 }
 
 /**
@@ -688,59 +690,42 @@ function packSequence(values, type, base=10) {
  * @param {number} base The base of the input. Optional. Default is 10.
  * @return {!Array<number>|string}
  */
-function unpackSequence(buffer, type, base=10) {
+function unpackArray(buffer, type, base=10) {
     let theType = Object.assign({}, type);
     theType.base = base;
     theType.single = false;
-    return fromBytes.fromBytes(buffer, theType.bitDepth, theType);
+    return fromBytes.fromBytes(buffer, theType.bits, theType);
 }
 
 // interface
 module.exports.pack = pack;
 module.exports.unpack = unpack;
-module.exports.packSequence = packSequence;
-module.exports.unpackSequence = unpackSequence;
+module.exports.packArray = packArray;
+module.exports.unpackArray = unpackArray;
 
 // types
-module.exports.char = {"bitDepth": 8, "char": true, "single": true};
-module.exports.bool = {"bitDepth": 1, "single": true};
-module.exports.int2 = {"bitDepth": 2, "signed": true, "single": true};
-module.exports.uInt2 = {"bitDepth": 2, "single": true};
-module.exports.int4 = {"bitDepth": 4, "signed": true, "single": true};
-module.exports.uInt4 = {"bitDepth": 4, "single": true};
-module.exports.int8 = {"bitDepth": 8, "signed": true, "single": true};
-module.exports.uInt8 = {"bitDepth": 8, "single": true};
-module.exports.int16  = {"bitDepth": 16, "signed": true, "single": true};
-module.exports.uInt16 = {"bitDepth": 16, "single": true};
-module.exports.float16 = {"bitDepth": 16, "float": true, "single": true};
-module.exports.int24 = {"bitDepth": 24, "signed": true, "single": true};
-module.exports.uInt24 = {"bitDepth": 24, "single": true};
-module.exports.int32 = {"bitDepth": 32, "signed": true, "single": true};
-module.exports.uInt32 = {"bitDepth": 32, "single": true};
-module.exports.float32 = {"bitDepth": 32, "float": true, "single": true};
-module.exports.int40 = {"bitDepth": 40, "signed": true, "single": true};
-module.exports.uInt40 = {"bitDepth": 40, "single": true};
-module.exports.int48 = {"bitDepth": 48, "signed": true, "single": true};
-module.exports.uInt48 = {"bitDepth": 48, "single": true};
-module.exports.float64 = {"bitDepth": 64, "float": true, "single": true};
+module.exports.chr = {"bits": 8, "char": true, "single": true};
+module.exports.bool = {"bits": 1, "single": true};
+module.exports.int2 = {"bits": 2, "signed": true, "single": true};
+module.exports.uInt2 = {"bits": 2, "single": true};
+module.exports.int4 = {"bits": 4, "signed": true, "single": true};
+module.exports.uInt4 = {"bits": 4, "single": true};
+module.exports.int8 = {"bits": 8, "signed": true, "single": true};
+module.exports.uInt8 = {"bits": 8, "single": true};
+module.exports.int16  = {"bits": 16, "signed": true, "single": true};
+module.exports.uInt16 = {"bits": 16, "single": true};
+module.exports.float16 = {"bits": 16, "float": true, "single": true};
+module.exports.int24 = {"bits": 24, "signed": true, "single": true};
+module.exports.uInt24 = {"bits": 24, "single": true};
+module.exports.int32 = {"bits": 32, "signed": true, "single": true};
+module.exports.uInt32 = {"bits": 32, "single": true};
+module.exports.float32 = {"bits": 32, "float": true, "single": true};
+module.exports.int40 = {"bits": 40, "signed": true, "single": true};
+module.exports.uInt40 = {"bits": 40, "single": true};
+module.exports.int48 = {"bits": 48, "signed": true, "single": true};
+module.exports.uInt48 = {"bits": 48, "single": true};
+module.exports.float64 = {"bits": 64, "float": true, "single": true};
 
-// Legacy types
-module.exports.floatLE = {"float": true, "single": true};
-module.exports.intLE = {"signed": true, "single": true};
-module.exports.uIntLE = {"single": true};
-module.exports.floatBE = {"float": true, "single": true, "be": true};
-module.exports.intBE = {"signed": true, "single": true, "be": true};
-module.exports.uIntBE = {"single": true, "be": true};
-
-module.exports.floatArrayLE = {"float": true};
-module.exports.intArrayLE = {"signed": true};
-module.exports.uIntArrayLE = {"base": 10};
-module.exports.floatArrayBE = {"float": true, "be": true};
-module.exports.intArrayBE = {"signed": true, "be": true};
-module.exports.uIntArrayBE = {"be": true};
-module.exports.str = {"char": true};
-
-// Legacy interface
 module.exports.findString = findString;
 module.exports.toBytes = toBytes.toBytes;
 module.exports.fromBytes = fromBytes.fromBytes;
@@ -766,6 +751,7 @@ module.exports.BitDepthMaxValues = bitDepth.BitDepthMaxValues;
 
 const writer = __webpack_require__(7);
 const helpers = __webpack_require__(0);
+const bitDepthLib = __webpack_require__(1);
 
 /**
  * Turn numbers and strings to bytes.
@@ -775,6 +761,7 @@ const helpers = __webpack_require__(0);
  * @param {Object} options The options:
  *   - "float": True for floating point numbers. Default is false.
  *       This option is available for 16, 32 and 64-bit numbers.
+ *   - "signed": True for signed values. Default is false.
  *   - "base": The base of the output. Default is 10. Can be 2, 10 or 16.
  *   - "char": If the bytes represent a string. Default is false.
  *   - "be": If the values are big endian. Default is false (little endian).
@@ -782,9 +769,16 @@ const helpers = __webpack_require__(0);
  *       Default is false (bytes are returned as a regular array).
  * @return {!Array<number>|!Array<string>|Uint8Array} the data as a byte buffer.
  */
-function toBytes(values, bitDepth, options={"base": 10}) {
+function toBytes(values, bitDepth, options={"base": 10, "signed": false}) {
+    if (bitDepth == 64) {
+        options.float = true;
+    }
+    if (options.float) {
+        options.signed = true;
+    }
+    options.bits = bitDepth;
     values = helpers.turnToArray(values);
-    let bytes = writeBytes(values, options.char, options.float, bitDepth);
+    let bytes = writeBytes(values, options, bitDepth);
     helpers.makeBigEndian(bytes, options.be, bitDepth);
     helpers.outputToBase(bytes, bitDepth, options.base);
     if (options.buffer) {
@@ -796,27 +790,62 @@ function toBytes(values, bitDepth, options={"base": 10}) {
 /**
  * Write values as bytes.
  * @param {!Array<number>|number|string} values The data.
- * @param {boolean} isChar True if it is a string.
- * @param {boolean} isFloat True if it is a IEEE floating point number.
+ * @param {Object} options The options according to the type.
  * @param {number} bitDepth The bitDepth of the data.
  * @return {!Array<number>} the bytes.
  */
-function writeBytes(values, isChar, isFloat, bitDepth) {
+function writeBytes(values, options, bitDepth) {
     let bitWriter;
-    if (isChar) {
+    if (options.char) {
         bitWriter = writer.writeString;
     } else {
-        bitWriter = writer['write' + bitDepth + 'Bit' + (isFloat ? "Float" : "")];
+        bitWriter = writer['write' + bitDepth + 'Bit' + (options.float ? "Float" : "")];
     }
     let i = 0;
     let j = 0;
     let len = values.length;
     let bytes = [];
-    while (i < len) {            
-        j = bitWriter(bytes, values, i, j);
+    let minMax = getBitDepthMinMax(options, bitDepth);
+    while (i < len) {
+        checkOverflow(values, i, minMax.min, minMax.max);
+        j = bitWriter(bytes, values, i, j, options.signed);
         i++;
     }
     return bytes;
+}
+
+/**
+ * Get the minimum and maximum values accordind to the type.
+ * @param {Object} options The options according to the type.
+ * @param {number} bitDepth The bit depth of the data.
+ * @return {Object}
+ */
+function getBitDepthMinMax(options, bitDepth) {
+    let minMax = {};
+    if (options.signed) {
+        minMax.max = (bitDepthLib.BitDepthMaxValues[bitDepth] / 2) - 1;
+        minMax.min = (bitDepthLib.BitDepthMaxValues[bitDepth] / 2) * -1;
+    } else {
+        minMax.max = bitDepthLib.BitDepthMaxValues[bitDepth] - 1;
+        minMax.min = 0;
+    }
+    return minMax;
+}
+
+/**
+ * Limit the value according to the bit depth in case of
+ * overflow or underflow.
+ * @param {!Array<number>|number|string} values The data.
+ * @param {number} index The index of the value in the array.
+ * @param {number} min The minimum value.
+ * @param {number} max The maximum value.
+ */
+function checkOverflow(values, index, min, max) {
+    if (values[index] > max) {
+        values[index] = max;
+    } else if(values[index] < min) {
+        values[index] = min;
+    }
 }
 
 module.exports.toBytes = toBytes;
@@ -827,16 +856,16 @@ module.exports.toBytes = toBytes;
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
- * Functions to turn data into bytes.
+ * write-bytes: Functions to turn data into bytes.
  * Copyright (c) 2017 Rafael da Silva Rocha.
  * https://github.com/rochars/byte-data
  */
 
-const float = __webpack_require__(2);
+const floats = __webpack_require__(2);
 const intBits = __webpack_require__(3);
 
-function write64Bit(bytes, numbers, i, j) {
-    let bits = float.toFloat64(numbers[i]);
+function write64BitFloat(bytes, numbers, i, j) {
+    let bits = floats.toFloat64(numbers[i]);
     j = write32Bit(bytes, bits, 1, j);
     return write32Bit(bytes, bits, 0, j);
 }
@@ -893,9 +922,9 @@ function write16Bit(bytes, numbers, i, j) {
 }
 
 function write16BitFloat(bytes, numbers, i, j) {
-    let bits = float.toHalf(numbers[i]);
-    bytes[j++] = bits  >>> 8 & 0xFF;
-    bytes[j++] = bits  & 0xFF;
+    let bits = floats.toHalf(numbers[i]);
+    bytes[j++] = bits >>> 8 & 0xFF;
+    bytes[j++] = bits & 0xFF;
     return j;
 }
 
@@ -924,7 +953,7 @@ function writeString(bytes, string, i, j) {
     return j;
 }
 
-module.exports.write64Bit = write64Bit;
+module.exports.write64BitFloat = write64BitFloat;
 module.exports.write48Bit = write48Bit;
 module.exports.write40Bit = write40Bit;
 module.exports.write32BitFloat = write32BitFloat;
@@ -955,40 +984,32 @@ module.exports.writeString = writeString;
  * Swap the endianness of units of information in a byte array.
  * The original array is modified in-place.
  * @param {!Array<number>|!Array<string>|Uint8Array} bytes The bytes.
- * @param {number} offset The byte offset according to the bit depth.
- *  - 2 for 16-bit
- *  - 3 for 24-bit
- *  - 4 for 32-bit
- *  - 5 for 40-bit
- *  - 6 for 48-bit
- *  - 7 for 56-bit
- *  - 8 for 64-bit
+ * @param {number} offset The number of bytes of each unit of information.
  */
 function endianness(bytes, offset) {
     let len = bytes.length;
     let i = 0;
     while (i < len) {
-        byteSwap(bytes, offset, i);
+        swap(bytes, offset, i);
         i += offset;
     }
 }
 
 /**
- * Swap the endianness of a unit of information in a array of bytes.
+ * Swap the endianness of a unit of information in a byte array.
  * The original array is modified in-place.
  * @param {!Array<number>|!Array<string>|Uint8Array} bytes The bytes.
- * @param {number} offset The number of bytes according to the bit depth.
+ * @param {number} offset The number of bytes of the unit of information.
  * @param {number} index The start index of the unit of information.
  */
-function byteSwap(bytes, offset, index) {
+function swap(bytes, offset, index) {
     let x = 0;
     let y = offset - 1;
     let limit = parseInt(offset / 2, 10);
-    let swap;
     while(x < limit) {
-        swap = bytes[index + x];
+        let theByte = bytes[index + x];
         bytes[index + x] = bytes[index + y];
-        bytes[index + y] = swap;
+        bytes[index + y] = theByte;
         x++;
         y--;
     }
@@ -1107,14 +1128,13 @@ module.exports.fromBytes = fromBytes;
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
- * Function to read data from bytes.
+ * read-bytes: Function to read data from bytes.
  * Copyright (c) 2017 Rafael da Silva Rocha.
  * https://github.com/rochars/byte-data
  */
 
-
 let helpers = __webpack_require__(0);
-const float = __webpack_require__(2);
+const floats = __webpack_require__(2);
 const intBits = __webpack_require__(3);
 
 /**
@@ -1174,7 +1194,7 @@ function read16Bit(bytes, i) {
  * @return {number}
  */
 function read16BitFloat(bytes, i) {
-    return float.decodeFloat16(bytes.slice(i,i+2));
+    return floats.decodeFloat16(bytes.slice(i,i+2));
 }
 
 /**
@@ -1239,7 +1259,7 @@ function read48Bit(bytes, i) {
  * @return {number}
  */
 function read64Bit(bytes, i) {
-    return float.decodeFloat64(bytes.slice(i,i+8));
+    return floats.decodeFloat64(bytes.slice(i,i+8));
 }
 
 /**
