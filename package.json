@@ -1,7 +1,7 @@
 {
   "name": "riff-chunks",
-  "version": "3.0.2",
-  "description": "Get the chunks of RIFF and RIFX files.",
+  "version": "3.0.3",
+  "description": "Get and set the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",
   "license": "MIT",
@@ -43,6 +43,6 @@
   },
   "main": "index.js",
   "dependencies": {
-    "byte-data": "2.0.0"
+    "byte-data": "^2.1.0"
   }
 }
