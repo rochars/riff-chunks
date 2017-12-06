@@ -410,9 +410,9 @@ const chr = byteData.chr;
  * @param {Object} chunks A structure like the return of riffChunks.read().
  * @param {boolean} bigEndian if the bytes should be big endian.
  *      "RIFX" chunkId will always set bigEndian to true.
- * @return {Array<number>|Uint8Array} The:
- *      - file bytes as Uint8Array when chunkId is "RIFF" or "RIFX" or
- *      - chunk bytes as Array<number> if chunkId is "LIST".
+ * @return {Array<number>|Uint8Array} The file bytes as Uint8Array when
+ *      chunkId is "RIFF" or "RIFX" or the chunk bytes as Array<number>
+ *      when chunkId is "LIST".
  */
 function write(chunks, bigEndian=false) {
     if (!bigEndian) {
@@ -433,7 +433,7 @@ function write(chunks, bigEndian=false) {
 /**
  * Get the chunks of a RIFF/RIFX file.
  * @param {Uint8Array|!Array<number>} buffer The file bytes.
- * @return {Object}
+ * @return {Object} The chunk.
  */
 function read(buffer) {
     buffer = [].slice.call(buffer);
@@ -451,7 +451,7 @@ function read(buffer) {
  * Write the sub chunks of a RIFF file.
  * @param {Array<Object>} chunks The chunks.
  * @param {boolean} bigEndian true if its RIFX.
- * @return {Array<number>}
+ * @return {Array<number>} The chunk bytes.
  */
 function writeSubChunks(chunks, bigEndian) {
     let subChunks = [];
@@ -474,7 +474,7 @@ function writeSubChunks(chunks, bigEndian) {
 /**
  * Get the sub chunks of a RIFF file.
  * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @return {Object}
+ * @return {Object} The subchunks of a RIFF/RIFX or LIST chunk.
  */
 function getSubChunks(buffer) {
     let chunks = [];
@@ -490,7 +490,7 @@ function getSubChunks(buffer) {
  * Get a sub chunk from a RIFF file.
  * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {Object}
+ * @return {Object} A subchunk of a RIFF/RIFX or LIST chunk.
  */
 function getSubChunk(buffer, index) {
     let chunk = {
@@ -511,7 +511,7 @@ function getSubChunk(buffer, index) {
  * Return the FourCC of a chunk.
  * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {string}
+ * @return {string} The id of the chunk.
  */
 function getChunkId(buffer, index) {
     return byteData.unpackArray(buffer.slice(index, index + 4), chr);
@@ -521,7 +521,7 @@ function getChunkId(buffer, index) {
  * Return the size of a chunk.
  * @param {Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {number}
+ * @return {number} The size of the chunk without the id and size fields.
  */
 function getChunkSize(buffer, index) {
     return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32);
