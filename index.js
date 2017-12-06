@@ -21,15 +21,15 @@ const chr = byteData.chr;
  */
 function write(chunks, bigEndian=false) {
     if (!bigEndian) {
-        uInt32.be = chunks.chunkId == "RIFX";
+        uInt32["be"] = chunks["chunkId"] == "RIFX";
     }
     let bytes =
-        byteData.packArray(chunks.chunkId, chr).concat(
-                byteData.pack(chunks.chunkSize, uInt32),
-                byteData.packArray(chunks.format, chr),
-                writeSubChunks(chunks.subChunks, uInt32.be)
+        byteData.packArray(chunks["chunkId"], chr).concat(
+                byteData.pack(chunks["chunkSize"], uInt32),
+                byteData.packArray(chunks["format"], chr),
+                writeSubChunks(chunks["subChunks"], uInt32.be)
             );
-    if (chunks.chunkId == "RIFF" || chunks.chunkId == "RIFX" ) {
+    if (chunks["chunkId"] == "RIFF" || chunks["chunkId"] == "RIFX" ) {
         bytes = new Uint8Array(bytes);
     }
     return bytes;
@@ -43,11 +43,10 @@ function write(chunks, bigEndian=false) {
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId(buffer, 0);
-    uInt32.be = chunkId == "RIFX";
-    let chunkSize = getChunkSize(buffer, 0);
+    uInt32["be"] = chunkId == "RIFX";
     return {
         "chunkId": chunkId,
-        "chunkSize": chunkSize,
+        "chunkSize": getChunkSize(buffer, 0),
         "format": byteData.unpackArray(buffer.slice(8, 12), chr),
         "subChunks": getSubChunks(buffer)
     };
@@ -63,13 +62,13 @@ function writeSubChunks(chunks, bigEndian) {
     let subChunks = [];
     let i = 0;
     while (i < chunks.length) {
-        if (chunks[i].chunkId == "LIST") {
+        if (chunks[i]["chunkId"] == "LIST") {
             subChunks = subChunks.concat(write(chunks[i], bigEndian));
         } else {
             subChunks = subChunks.concat(
-                byteData.packArray(chunks[i].chunkId, chr),
-                byteData.pack(chunks[i].chunkSize, uInt32),
-                chunks[i].chunkData
+                byteData.packArray(chunks[i]["chunkId"], chr),
+                byteData.pack(chunks[i]["chunkSize"], uInt32),
+                chunks[i]["chunkData"]
             );
         }
         i++;

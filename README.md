@@ -1,9 +1,9 @@
 # riff-chunks
-Get and set the chunks of RIFF and RIFX files.  
+Read and write the chunks of RIFF and RIFX files.  
 Copyright (c) 2017 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
-[![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html)
+[![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html) [![JSPerf](https://img.shields.io/badge/jsperf-run-blue.svg?style=for-the-badge)](https://jsperf.com/riff-chunks)
 
 ## Install
 ```

@@ -12,7 +12,7 @@ describe("riffChunks vs RIFX WAVE: Read", function() {
     const riffChunks = require("../index.js");
     const fs = require("fs");
     
-    let chunks = riffChunks.read(fs.readFileSync('./test/RIFX-16bit-mono.wav'));
+    let chunks = riffChunks.read(fs.readFileSync('./test/files/RIFX-16bit-mono.wav'));
     
     it("chunkId should be RIFX", function() {
         assert.equal(chunks.chunkId, "RIFX");
@@ -37,7 +37,7 @@ describe("riffChunks vs RIFX WAVE: Read file, write to object, read object", fun
     const fs = require("fs");
     
     let chunks = riffChunks.read(
-        fs.readFileSync('./test/RIFX-16bit-mono.wav'));
+        fs.readFileSync('./test/files/RIFX-16bit-mono.wav'));
     chunks = riffChunks.read(riffChunks.write(chunks));
     
     it("chunkId should be RIFX", function() {
@@ -63,9 +63,9 @@ describe("riffChunks vs RIFX WAVE: Read file, write file, read again", function(
     const fs = require("fs");
     
     let chunks = riffChunks.read(
-        fs.readFileSync('./test/RIFX-16bit-mono.wav'));
-    fs.writeFileSync('./test/output-RIFX.wav', riffChunks.write(chunks));
-    chunks = riffChunks.read(fs.readFileSync('./test/output-RIFX.wav'));
+        fs.readFileSync('./test/files/RIFX-16bit-mono.wav'));
+    fs.writeFileSync('./test/files/output-RIFX.wav', riffChunks.write(chunks));
+    chunks = riffChunks.read(fs.readFileSync('./test/files/output-RIFX.wav'));
     
     it("chunkId should be RIFX", function() {
         assert.equal(chunks.chunkId, "RIFX");
