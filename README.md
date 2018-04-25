@@ -1,9 +1,10 @@
 # riff-chunks
 Read and write the chunks of RIFF and RIFX files.  
-Copyright (c) 2017 Rafael da Silva Rocha.  
+Copyright (c) 2017-2018 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
-[![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html) [![JSPerf](https://img.shields.io/badge/jsperf-run-blue.svg?style=for-the-badge)](https://jsperf.com/riff-chunks)
+[![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html)  
+[![Codecov](https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=flat-square)](https://codecov.io/gh/rochars/riff-chunks) [![Unix Build](https://img.shields.io/travis/rochars/riff-chunks.svg?style=flat-square)](https://travis-ci.org/rochars/riff-chunks) [![Windows Build](https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=flat-square&logo=appveyor)](https://ci.appveyor.com/project/rochars/riff-chunks) [![Scrutinizer](https://img.shields.io/scrutinizer/g/rochars/riff-chunks.svg?style=flat-square&logo=scrutinizer)](https://scrutinizer-ci.com/g/rochars/riff-chunks/)
 
 ## Install
 ```
@@ -58,7 +59,7 @@ function write(chunks) {}
 ```
 
 ## LICENSE
-Copyright (c) 2017 Rafael da Silva Rocha.
+Copyright (c) 2017-2018 Rafael da Silva Rocha.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

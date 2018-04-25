@@ -9,7 +9,8 @@ var assert = require("assert");
 
 describe("riffChunks vs RIFF WAVE: Read file", function() {
 
-    const riffChunks = require("../index.js");
+    const riffChunks = require("../test/loader.js");
+    //const path = require("../test/loader.js").path;
     const fs = require("fs");
     
     let chunks = riffChunks.read(

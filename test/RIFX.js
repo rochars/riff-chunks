@@ -9,7 +9,7 @@ var assert = require("assert");
 
 describe("riffChunks vs RIFX WAVE: Read", function() {
 
-    const riffChunks = require("../index.js");
+    const riffChunks = require("../test/loader.js");
     const fs = require("fs");
     
     let chunks = riffChunks.read(fs.readFileSync('./test/files/RIFX-16bit-mono.wav'));
