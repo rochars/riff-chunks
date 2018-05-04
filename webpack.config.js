@@ -1,33 +1,22 @@
-/*!
- * Copyright (c) 2017 Rafael da Silva Rocha.
+/**
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
  * https://github.com/rochars/riff-chunks
  *
  */
-
+const ClosureCompiler = require('google-closure-compiler-js').webpack;
 module.exports = {
-  entry: './index.js',
+  entry: './compile.js',
   output: {
-    filename: './dist/riff-chunks.js'
+    filename: './dist/riff-chunks-min.js'
   },
-  module: {
-    loaders: [
-      {
-        test:  /index\.js$/,
-        loader: 'string-replace-loader',
-        query: {
-          multiple: [
-            {
-              search: 'module.exports.read',
-              replace: "window['riffChunks'] = window['riffChunks'] || {};" + 
-                       "window['riffChunks']['read']"
-            },
-            {
-              search: 'module.exports.write',
-              replace: "window['riffChunks']['write']"
-            }
-          ]
-        }
+  plugins: [
+    new ClosureCompiler({
+      options: {
+        languageIn: 'ECMASCRIPT6',
+        languageOut: 'ECMASCRIPT5',
+        compilationLevel: 'ADVANCED',
+        warningLevel: 'VERBOSE'
       }
-    ]
-  }
+    })
+  ]
 };

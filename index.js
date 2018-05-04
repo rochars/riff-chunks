@@ -1,7 +1,7 @@
-/*!
+/*
  * riff-chunks
  * Read and write the chunks of RIFF and RIFX files.
- * Copyright (c) 2017 Rafael da Silva Rocha.
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
  * https://github.com/rochars/riff-chunks
  *
  */
@@ -9,10 +9,7 @@
 /** @private */
 const byteData = require("byte-data");
 /** @private */
-const chr = byteData.chr;
-/** @private */
 let uInt32 = byteData.uInt32;
-
 
 /**
  * Write the bytes of a RIFF/RIFX file.
@@ -22,11 +19,11 @@ let uInt32 = byteData.uInt32;
  *      when chunkId is "LIST".
  */
 function write(chunks) {
-    uInt32.be = chunks["chunkId"] === "RIFX";
+    uInt32["be"] = chunks["chunkId"] === "RIFX";
     let bytes =
-        byteData.packArray(chunks["chunkId"], chr).concat(
+        byteData.packArray(chunks["chunkId"], byteData.chr).concat(
                 byteData.pack(chunks["chunkSize"], uInt32),
-                byteData.packArray(chunks["format"], chr),
+                byteData.packArray(chunks["format"], byteData.chr),
                 writeSubChunks_(chunks["subChunks"])
             );
     if (chunks["chunkId"] === "RIFF" || chunks["chunkId"] === "RIFX" ) {
@@ -43,11 +40,11 @@ function write(chunks) {
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
-    uInt32.be = chunkId === "RIFX";
+    uInt32["be"] = chunkId === "RIFX";
     return {
         "chunkId": chunkId,
         "chunkSize": getChunkSize_(buffer, 0),
-        "format": byteData.unpackArray(buffer.slice(8, 12), chr),
+        "format": byteData.unpackArray(buffer.slice(8, 12), byteData.chr),
         "subChunks": getSubChunks_(buffer)
     };
 }
@@ -66,7 +63,7 @@ function writeSubChunks_(chunks) {
             subChunks = subChunks.concat(write(chunks[i]));
         } else {
             subChunks = subChunks.concat(
-                byteData.packArray(chunks[i]["chunkId"], chr),
+                byteData.packArray(chunks[i]["chunkId"], byteData.chr),
                 byteData.pack(chunks[i]["chunkSize"], uInt32),
                 chunks[i]["chunkData"]
             );
@@ -105,7 +102,7 @@ function getSubChunk_(buffer, index) {
         "chunkSize": getChunkSize_(buffer, index)
     };
     if (chunk["chunkId"] === "LIST") {
-        chunk["format"] = byteData.unpackArray(buffer.slice(8, 12), chr);
+        chunk["format"] = byteData.unpackArray(buffer.slice(8, 12), byteData.chr);
         chunk["subChunks"] = getSubChunks_(
             buffer.slice(index, index + chunk["chunkSize"]));
     } else {
@@ -123,7 +120,7 @@ function getSubChunk_(buffer, index) {
  * @private
  */
 function getChunkId_(buffer, index) {
-    return byteData.unpackArray(buffer.slice(index, index + 4), chr);
+    return byteData.unpackArray(buffer.slice(index, index + 4), byteData.chr);
 }
 
 /**
