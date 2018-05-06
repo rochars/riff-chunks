@@ -9,24 +9,25 @@
 /** @private */
 const byteData = require("byte-data");
 /** @private */
-let uInt32 = byteData.uInt32;
+const uInt32_ = {"bits": 32};
+/** @private */
+const fourCC_ = {"bits": 32, "char": true};
 
 /**
  * Write the bytes of a RIFF/RIFX file.
- * @param {Object} chunks A structure like the return of riffChunks.read().
- * @return {Uint8Array} The file bytes as Uint8Array when
- *      chunkId is "RIFF" or "RIFX" or the chunk bytes as Array<number>
- *      when chunkId is "LIST".
+ * @param {!Object} chunks A structure like the return of riffChunks.read().
+ * @return {!Array<number>|Uint8Array} The bytes as Uint8Array when chunkId is
+ *      "RIFF" or "RIFX" or the chunk bytes as Array<number> when chunkId is "LIST".
  */
 function write(chunks) {
-    uInt32["be"] = chunks["chunkId"] === "RIFX";
+    uInt32_["be"] = chunks["chunkId"] == "RIFX";
     let bytes =
-        byteData.packArray(chunks["chunkId"], byteData.chr).concat(
-                byteData.pack(chunks["chunkSize"], uInt32),
-                byteData.packArray(chunks["format"], byteData.chr),
+        byteData.pack(chunks["chunkId"], fourCC_).concat(
+                byteData.pack(chunks["chunkSize"], uInt32_),
+                byteData.pack(chunks["format"], fourCC_),
                 writeSubChunks_(chunks["subChunks"])
             );
-    if (chunks["chunkId"] === "RIFF" || chunks["chunkId"] === "RIFX" ) {
+    if (chunks["chunkId"] == "RIFF" || chunks["chunkId"] == "RIFX" ) {
         bytes = new Uint8Array(bytes);
     }
     return bytes;
@@ -34,37 +35,37 @@ function write(chunks) {
 
 /**
  * Get the chunks of a RIFF/RIFX file.
- * @param {Uint8Array|Array<number>} buffer The file bytes.
- * @return {Object} The chunk.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The chunk.
  */
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
-    uInt32["be"] = chunkId === "RIFX";
+    uInt32_["be"] = chunkId == "RIFX";
     return {
         "chunkId": chunkId,
         "chunkSize": getChunkSize_(buffer, 0),
-        "format": byteData.unpackArray(buffer.slice(8, 12), byteData.chr),
+        "format": byteData.unpack(buffer.slice(8, 12), fourCC_),
         "subChunks": getSubChunks_(buffer)
     };
 }
 
 /**
  * Write the sub chunks of a RIFF file.
- * @param {Array<Object>} chunks The chunks.
- * @return {Array<number>} The chunk bytes.
+ * @param {!Array<!Object>} chunks The chunks.
+ * @return {!Array<number>} The chunk bytes.
  * @private
  */
 function writeSubChunks_(chunks) {
     let subChunks = [];
     let i = 0;
     while (i < chunks.length) {
-        if (chunks[i]["chunkId"] === "LIST") {
+        if (chunks[i]["chunkId"] == "LIST") {
             subChunks = subChunks.concat(write(chunks[i]));
         } else {
             subChunks = subChunks.concat(
-                byteData.packArray(chunks[i]["chunkId"], byteData.chr),
-                byteData.pack(chunks[i]["chunkSize"], uInt32),
+                byteData.pack(chunks[i]["chunkId"], fourCC_),
+                byteData.pack(chunks[i]["chunkSize"], uInt32_),
                 chunks[i]["chunkData"]
             );
         }
@@ -75,8 +76,8 @@ function writeSubChunks_(chunks) {
 
 /**
  * Get the sub chunks of a RIFF file.
- * @param {Uint8Array|Array<number>} buffer the RIFF file bytes.
- * @return {Object} The subchunks of a RIFF/RIFX or LIST chunk.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
  * @private
  */
 function getSubChunks_(buffer) {
@@ -91,18 +92,20 @@ function getSubChunks_(buffer) {
 
 /**
  * Get a sub chunk from a RIFF file.
- * @param {Uint8Array|Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {Object} A subchunk of a RIFF/RIFX or LIST chunk.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!number} index The start index of the chunk.
+ * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
  * @private
  */
 function getSubChunk_(buffer, index) {
     let chunk = {
         "chunkId": getChunkId_(buffer, index),
-        "chunkSize": getChunkSize_(buffer, index)
+        "chunkSize": getChunkSize_(buffer, index),
+        "subChunks": [],
+        "chunkData": []
     };
-    if (chunk["chunkId"] === "LIST") {
-        chunk["format"] = byteData.unpackArray(buffer.slice(8, 12), byteData.chr);
+    if (chunk["chunkId"] == "LIST") {
+        chunk["format"] = byteData.unpack(buffer.slice(8, 12), fourCC_);
         chunk["subChunks"] = getSubChunks_(
             buffer.slice(index, index + chunk["chunkSize"]));
     } else {
@@ -113,25 +116,25 @@ function getSubChunk_(buffer, index) {
 }
 
 /**
- * Return the FourCC of a chunk.
- * @param {Uint8Array|Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {string} The id of the chunk.
+ * Return the fourCC_ of a chunk.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!number} index The start index of the chunk.
+ * @return {!string} The id of the chunk.
  * @private
  */
 function getChunkId_(buffer, index) {
-    return byteData.unpackArray(buffer.slice(index, index + 4), byteData.chr);
+    return byteData.unpack(buffer.slice(index, index + 4), fourCC_);
 }
 
 /**
  * Return the size of a chunk.
- * @param {Uint8Array|Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {number} The size of the chunk without the id and size fields.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!number} index The start index of the chunk.
+ * @return {!number} The size of the chunk without the id and size fields.
  * @private
  */
 function getChunkSize_(buffer, index) {
-    return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32);
+    return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32_);
 }
 
 module.exports.read = read;

@@ -1,6 +1,6 @@
 {
   "name": "riff-chunks",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Read and write the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",
@@ -45,6 +45,6 @@
   },
   "main": "index.js",
   "dependencies": {
-    "byte-data": "^7.0.0"
+    "byte-data": "^8.0.0"
   }
 }
