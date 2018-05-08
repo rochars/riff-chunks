@@ -16,10 +16,12 @@ const fourCC_ = {"bits": 32, "char": true};
 /**
  * Write the bytes of a RIFF/RIFX file.
  * @param {!Object} chunks A structure like the return of riffChunks.read().
+ * @param {boolean} list An optional param indicating if the chunk is of type LIST.
+ *      "LIST" chunks should not be rendered as Uint8Array.
  * @return {!Array<number>|Uint8Array} The bytes as Uint8Array when chunkId is
  *      "RIFF" or "RIFX" or the chunk bytes as Array<number> when chunkId is "LIST".
  */
-function write(chunks) {
+function write(chunks, list=false) {
     uInt32_["be"] = chunks["chunkId"] == "RIFX";
     let bytes =
         byteData.pack(chunks["chunkId"], fourCC_).concat(
@@ -27,7 +29,7 @@ function write(chunks) {
                 byteData.pack(chunks["format"], fourCC_),
                 writeSubChunks_(chunks["subChunks"])
             );
-    if (chunks["chunkId"] == "RIFF" || chunks["chunkId"] == "RIFX" ) {
+    if (!list) {
         bytes = new Uint8Array(bytes);
     }
     return bytes;
@@ -61,7 +63,7 @@ function writeSubChunks_(chunks) {
     let i = 0;
     while (i < chunks.length) {
         if (chunks[i]["chunkId"] == "LIST") {
-            subChunks = subChunks.concat(write(chunks[i]));
+            subChunks = subChunks.concat(write(chunks[i], true));
         } else {
             subChunks = subChunks.concat(
                 byteData.pack(chunks[i]["chunkId"], fourCC_),
@@ -101,13 +103,11 @@ function getSubChunk_(buffer, index) {
     let chunk = {
         "chunkId": getChunkId_(buffer, index),
         "chunkSize": getChunkSize_(buffer, index),
-        "subChunks": [],
         "chunkData": []
     };
     if (chunk["chunkId"] == "LIST") {
-        chunk["format"] = byteData.unpack(buffer.slice(8, 12), fourCC_);
-        chunk["subChunks"] = getSubChunks_(
-            buffer.slice(index, index + chunk["chunkSize"]));
+        chunk["format"] = byteData.unpack(buffer.slice(index + 8, index + 12), fourCC_);
+        chunk["subChunks"] = getSubChunks_(buffer.slice(index));
     } else {
         chunk["chunkData"] = buffer.slice(
             index + 8, index + 8 + chunk["chunkSize"]);

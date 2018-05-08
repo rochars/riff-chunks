@@ -41,6 +41,12 @@ describe("riffChunks vs RIFF WAVE: Read file", function() {
     it("chunks.subChunks[4].chunkId should be 'LIST'", function() {
         assert.equal(chunks.subChunks[4].chunkId, "LIST");
     });
+    it("chunks.subChunks[4].format should be 'adtl'", function() {
+        assert.equal(chunks.subChunks[4].format, "adtl");
+    });
+    it("chunks.subChunks[4].subChunks[0].chunkId should be 'labl'", function() {
+        assert.equal(chunks.subChunks[4].subChunks[0].chunkId, "labl");
+    });
 });
 
 describe("riffChunks vs RIFF WAVE: Read file, write to object, read object", function() {
@@ -48,9 +54,9 @@ describe("riffChunks vs RIFF WAVE: Read file, write to object, read object", fun
     const riffChunks = require("../index.js");
     const fs = require("fs");
     
-    let chunks = riffChunks.read(
+    let chunks0 = riffChunks.read(
         fs.readFileSync('./test/files/16bit-16kHz-2markers-mono.wav'));
-    chunks = riffChunks.read(riffChunks.write(chunks));
+    let chunks = riffChunks.read(riffChunks.write(chunks0));
     
     it("chunkId should be RIFF", function() {
         assert.equal(chunks.chunkId, "RIFF");
@@ -76,6 +82,12 @@ describe("riffChunks vs RIFF WAVE: Read file, write to object, read object", fun
     });
     it("chunks.subChunks[4].chunkId should be 'LIST'", function() {
         assert.equal(chunks.subChunks[4].chunkId, "LIST");
+    });
+    it("chunks.subChunks[4].format should be 'adtl'", function() {
+        assert.equal(chunks.subChunks[4].format, "adtl");
+    });
+    it("chunks.subChunks[4].subChunks[0].chunkId should be 'labl'", function() {
+        assert.equal(chunks.subChunks[4].subChunks[0].chunkId, "labl");
     });
 });
 
@@ -84,10 +96,10 @@ describe("riffChunks vs RIFF WAVE: Read file, write file, read again", function(
     const riffChunks = require("../index.js");
     const fs = require("fs");
     
-    let chunks = riffChunks.read(
+    let chunks0 = riffChunks.read(
         fs.readFileSync('./test/files/16bit-16kHz-2markers-mono.wav'));
-    fs.writeFileSync('./test/files/output.wav', riffChunks.write(chunks));
-    chunks = riffChunks.read(fs.readFileSync('./test/files/output.wav'));
+    fs.writeFileSync('./test/files/output.wav', riffChunks.write(chunks0));
+    let chunks = riffChunks.read(fs.readFileSync('./test/files/output.wav'));
     
     it("chunkId should be RIFF", function() {
         assert.equal(chunks.chunkId, "RIFF");
@@ -113,5 +125,11 @@ describe("riffChunks vs RIFF WAVE: Read file, write file, read again", function(
     });
     it("chunks.subChunks[4].chunkId should be 'LIST'", function() {
         assert.equal(chunks.subChunks[4].chunkId, "LIST");
+    });
+    it("chunks.subChunks[4].format should be 'adtl'", function() {
+        assert.equal(chunks.subChunks[4].format, "adtl");
+    });
+    it("chunks.subChunks[4].subChunks[0].chunkId should be 'labl'", function() {
+        assert.equal(chunks.subChunks[4].subChunks[0].chunkId, "labl");
     });
 });

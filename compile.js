@@ -5,7 +5,6 @@
  */
 
 const riffChunks = require("./index.js");
-
-window['riffChunks'] = window['riffChunks'] ? window['riffChunks'] : {};
+window['riffChunks'] = riffChunks;
 window['riffChunks']['read'] = riffChunks.read;
 window['riffChunks']['write'] = riffChunks.write;
