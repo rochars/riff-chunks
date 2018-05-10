@@ -16,19 +16,17 @@ const fourCC_ = {"bits": 32, "char": true};
 /**
  * Write the bytes of a RIFF/RIFX file.
  * @param {!Object} chunks A structure like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is of type LIST.
+ * @param {boolean} list An optional param indicating if the chunk is LIST.
  *      "LIST" chunks should not be rendered as Uint8Array.
  * @return {!Array<number>|Uint8Array} The bytes as Uint8Array when chunkId is
- *      "RIFF" or "RIFX" or the chunk bytes as Array<number> when chunkId is "LIST".
+ *      "RIFF"/"RIFX" or as Array<number> when chunkId is "LIST".
  */
 function write(chunks, list=false) {
     uInt32_["be"] = chunks["chunkId"] == "RIFX";
-    let bytes =
-        byteData.pack(chunks["chunkId"], fourCC_).concat(
-                byteData.pack(chunks["chunkSize"], uInt32_),
-                byteData.pack(chunks["format"], fourCC_),
-                writeSubChunks_(chunks["subChunks"])
-            );
+    let bytes = byteData.pack(chunks["chunkId"], fourCC_).concat(
+        byteData.pack(chunks["chunkSize"], uInt32_),
+        byteData.pack(chunks["format"], fourCC_),
+        writeSubChunks_(chunks["subChunks"]));
     if (!list) {
         bytes = new Uint8Array(bytes);
     }
@@ -68,8 +66,7 @@ function writeSubChunks_(chunks) {
             subChunks = subChunks.concat(
                 byteData.pack(chunks[i]["chunkId"], fourCC_),
                 byteData.pack(chunks[i]["chunkSize"], uInt32_),
-                chunks[i]["chunkData"]
-            );
+                chunks[i]["chunkData"]);
         }
         i++;
     }
@@ -84,8 +81,8 @@ function writeSubChunks_(chunks) {
  */
 function getSubChunks_(buffer) {
     let chunks = [];
-    let i = 12;
-    while(i < buffer.length) {
+    let i = fixIndex_(buffer, 12);
+    while(i <= buffer.length - 8) {
         chunks.push(getSubChunk_(buffer, i));
         i += 8 + chunks[chunks.length - 1]["chunkSize"];
     }
@@ -100,19 +97,36 @@ function getSubChunks_(buffer) {
  * @private
  */
 function getSubChunk_(buffer, index) {
+    index = fixIndex_(buffer, index);
     let chunk = {
         "chunkId": getChunkId_(buffer, index),
         "chunkSize": getChunkSize_(buffer, index),
-        "chunkData": []
     };
     if (chunk["chunkId"] == "LIST") {
-        chunk["format"] = byteData.unpack(buffer.slice(index + 8, index + 12), fourCC_);
+        chunk["format"] = byteData.unpack(
+            buffer.slice(index + 8, index + 12), fourCC_);
         chunk["subChunks"] = getSubChunks_(buffer.slice(index));
     } else {
         chunk["chunkData"] = buffer.slice(
             index + 8, index + 8 + chunk["chunkSize"]);
     }
     return chunk;
+}
+
+/**
+ * Fix the index for reading the chunkId for files
+ * with broken size descriptions.
+ * @param {!Uint8Array|!Array<number>} buffer The buffer.
+ * @param {!number} i The start index of the chunk.
+ * @return {!number} The new index.
+ * @private
+ */
+function fixIndex_(buffer, i) {
+    while (buffer[i] == 0 || buffer[i+1] == 0 ||
+            buffer[i+2] == 0 || buffer[i+3] == 0) {
+        i++;
+    }
+    return i;
 }
 
 /**

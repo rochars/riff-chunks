@@ -7,6 +7,28 @@
 var assert = require("assert");
 
 
+
+describe("riffChunks vs RIFF WAVE: Read file with broken size descriptors", function() {
+
+    const riffChunks = require("../test/loader.js");
+    //const path = require("../test/loader.js").path;
+    const fs = require("fs");
+    
+    let chunks = riffChunks.read(
+        fs.readFileSync('./test/files/M1F1-int12WE-AFsp-NEW-TAGS.wav'));
+    
+    it("chunkId should be RIFF", function() {
+        assert.equal(chunks.chunkId, "RIFF");
+    });
+    it("format should be WAVE", function() {
+        assert.equal(chunks.format, "WAVE");
+    });
+    it("subChunks length should be 4",function() {
+        assert.equal(chunks.subChunks.length, 4);
+    });
+});
+
+
 describe("riffChunks vs RIFF WAVE: Read file", function() {
 
     const riffChunks = require("../test/loader.js");
