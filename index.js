@@ -18,7 +18,7 @@ const fourCC_ = {"bits": 32, "char": true};
  * @param {!Object} chunks A structure like the return of riffChunks.read().
  * @param {boolean} list An optional param indicating if the chunk is LIST.
  *      "LIST" chunks should not be rendered as Uint8Array.
- * @return {!Array<number>|Uint8Array} The bytes as Uint8Array when chunkId is
+ * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
  *      "RIFF"/"RIFX" or as Array<number> when chunkId is "LIST".
  */
 function write(chunks, list=false) {
@@ -92,7 +92,7 @@ function getSubChunks_(buffer) {
 /**
  * Get a sub chunk from a RIFF file.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {!number} index The start index of the chunk.
+ * @param {number} index The start index of the chunk.
  * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
  * @private
  */
@@ -117,8 +117,8 @@ function getSubChunk_(buffer, index) {
  * Fix the index for reading the chunkId for files
  * with broken size descriptions.
  * @param {!Uint8Array|!Array<number>} buffer The buffer.
- * @param {!number} i The start index of the chunk.
- * @return {!number} The new index.
+ * @param {number} i The start index of the chunk.
+ * @return {number} The new index.
  * @private
  */
 function fixIndex_(buffer, i) {
@@ -132,8 +132,8 @@ function fixIndex_(buffer, i) {
 /**
  * Return the fourCC_ of a chunk.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {!number} index The start index of the chunk.
- * @return {!string} The id of the chunk.
+ * @param {number} index The start index of the chunk.
+ * @return {string} The id of the chunk.
  * @private
  */
 function getChunkId_(buffer, index) {
@@ -143,8 +143,8 @@ function getChunkId_(buffer, index) {
 /**
  * Return the size of a chunk.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {!number} index The start index of the chunk.
- * @return {!number} The size of the chunk without the id and size fields.
+ * @param {number} index The start index of the chunk.
+ * @return {number} The size of the chunk without the id and size fields.
  * @private
  */
 function getChunkSize_(buffer, index) {

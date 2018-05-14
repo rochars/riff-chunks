@@ -1,5 +1,4 @@
 # riff-chunks
-Read and write the chunks of RIFF and RIFX files.  
 Copyright (c) 2017-2018 Rafael da Silva Rocha.  
 https://github.com/rochars/riff-chunks
 
@@ -7,7 +6,7 @@ https://github.com/rochars/riff-chunks
 [![Codecov](https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=flat-square)](https://codecov.io/gh/rochars/riff-chunks) [![Unix Build](https://img.shields.io/travis/rochars/riff-chunks.svg?style=flat-square)](https://travis-ci.org/rochars/riff-chunks) [![Windows Build](https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=flat-square&logo=appveyor)](https://ci.appveyor.com/project/rochars/riff-chunks) [![Scrutinizer](https://img.shields.io/scrutinizer/g/rochars/riff-chunks.svg?style=flat-square&logo=scrutinizer)](https://scrutinizer-ci.com/g/rochars/riff-chunks/)
 
 ## About
-Read and write the chunks of RIFF files.
+Read and write the chunks of RIFF and RIFX files.
 
 ## Install
 ```
