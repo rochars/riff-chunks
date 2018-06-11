@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.0.8 (2018-06-11)
+- fix: remove dist from npm in v4 to avoid breaking dependents.
+
 ## 4.0.7 (2018-06-11)
 - Add dist file to npm package.
 

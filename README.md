@@ -19,11 +19,6 @@ Use the compiled file in the */dist* folder:
 <script src="riff-chunks-min.js"></script>
 ```
 
-Or get it from the [jsDelivr](https://www.jsdelivr.com) CDN:
-```html
-<script src="https://cdn.jsdelivr.net/npm/riff-chunks@4.0.7"></script>
-```
-
 ## Use
 ```javascript
 const riffChunks = require("riff-chunks");
