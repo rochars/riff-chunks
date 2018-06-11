@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.0.6 (2018-06-10)
+- fix: chunkSize for odd number of bytes.
+
 ## 4.0.5 (2018-05-13)
 - Better packaging.
 

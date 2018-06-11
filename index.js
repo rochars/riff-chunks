@@ -81,10 +81,11 @@ function writeSubChunks_(chunks) {
  */
 function getSubChunks_(buffer) {
     let chunks = [];
-    let i = fixIndex_(buffer, 12);
+    let i = 12;
     while(i <= buffer.length - 8) {
         chunks.push(getSubChunk_(buffer, i));
         i += 8 + chunks[chunks.length - 1]["chunkSize"];
+        i = i % 2 ? i + 1 : i;
     }
     return chunks;
 }
@@ -97,7 +98,6 @@ function getSubChunks_(buffer) {
  * @private
  */
 function getSubChunk_(buffer, index) {
-    index = fixIndex_(buffer, index);
     let chunk = {
         "chunkId": getChunkId_(buffer, index),
         "chunkSize": getChunkSize_(buffer, index),
@@ -107,26 +107,11 @@ function getSubChunk_(buffer, index) {
             buffer.slice(index + 8, index + 12), fourCC_);
         chunk["subChunks"] = getSubChunks_(buffer.slice(index));
     } else {
+        let slc = chunk["chunkSize"] % 2 ? chunk["chunkSize"] + 1 : chunk["chunkSize"];
         chunk["chunkData"] = buffer.slice(
-            index + 8, index + 8 + chunk["chunkSize"]);
+            index + 8, index + 8 + slc);
     }
     return chunk;
-}
-
-/**
- * Fix the index for reading the chunkId for files
- * with broken size descriptions.
- * @param {!Uint8Array|!Array<number>} buffer The buffer.
- * @param {number} i The start index of the chunk.
- * @return {number} The new index.
- * @private
- */
-function fixIndex_(buffer, i) {
-    while (buffer[i] == 0 || buffer[i+1] == 0 ||
-            buffer[i+2] == 0 || buffer[i+3] == 0) {
-        i++;
-    }
-    return i;
 }
 
 /**
