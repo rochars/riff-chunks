@@ -1,6 +1,6 @@
 {
   "name": "riff-chunks",
-  "version": "4.0.6",
+  "version": "4.0.7",
   "description": "Read and write the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael da Silva Rocha <rocha.rafaelsilva@gmail.com>",
@@ -44,8 +44,9 @@
     "string-replace-loader": "^1.3.0",
     "webpack": "^3.8.1"
   },
-  "main": "index.js",
   "dependencies": {
     "byte-data": "^8.0.0"
-  }
+  },
+  "main": "index.js",
+  "browser": "./dist/riff-chunks-min.js"
 }

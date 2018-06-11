@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.0.7 (2018-06-11)
+- Add dist file to npm package.
+
 ## 4.0.6 (2018-06-10)
 - fix: chunkSize for odd number of bytes.
 
