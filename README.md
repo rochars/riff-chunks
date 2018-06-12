@@ -19,7 +19,12 @@ Use the compiled file in the */dist* folder:
 <script src="riff-chunks-min.js"></script>
 ```
 
-## Use
+Or get it from the [jsDelivr](https://www.jsdelivr.com) CDN:
+```html
+<script src="https://cdn.jsdelivr.net/npm/riff-chunks@5"></script>
+```
+
+## Example
 ```javascript
 const riffChunks = require("riff-chunks");
 const fs = require("fs");
@@ -27,6 +32,8 @@ const fs = require("fs");
 let chunks = riffChunks.read(fs.readFileSync("file.wav"));
 fs.writeFileSync("output.wav", riffChunks.write(chunks));
 ```
+
+## API
 
 ## riffChunks.read()
 ```javascript

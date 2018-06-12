@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 5.0.8 (2018-06-12)
+- Add dist file to npm package.
+- update: byte-data to version 9
+
 ## 4.0.8 (2018-06-11)
 - fix: remove dist from npm in v4 to avoid breaking dependents.
 
