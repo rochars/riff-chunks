@@ -38,14 +38,14 @@ fs.writeFileSync("output.wav", riffChunks.write(chunks));
 ## riffChunks.read()
 ```javascript
 /**
- * Get the chunks of a RIFF/RIFX file.
- * @param {Uint8Array|!Array<number>} buffer The file bytes.
- * @return {Object} The RIFF file chunks.
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
  */
 function read(buffer) {}
 ```
 
-**riffChunks.read()** returns a structure like this:
+**riffChunks.read()** returns a object like this:
 ```
 {
     "chunkId": string,
@@ -66,9 +66,12 @@ The **chunkData** field contains the raw bytes of the chunk data.
 ## riffChunks.write()
 ```javascript
 /**
- * Write the bytes of a RIFF/RIFX file.
- * @param {Object} chunks A structure like the return of riffChunks.read().
- * @return {Uint8Array} The file bytes.
+ * Pack a RIFF/RIFX file.
+ * @param {!Object} chunks A object like the return of riffChunks.read().
+ * @param {boolean} list An optional param indicating if the chunk is LIST.
+ *      "LIST" chunks should not be rendered as Uint8Array.
+ * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
+ *      "RIFF"/"RIFX" or as Array<number> when chunkId is "LIST".
  */
 function write(chunks) {}
 ```

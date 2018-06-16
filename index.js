@@ -1,10 +1,35 @@
 /*
- * riff-chunks
- * Read and write the chunks of RIFF and RIFX files.
- * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ * riff-chunks: Read and write the chunks of RIFF and RIFX files.
  * https://github.com/rochars/riff-chunks
  *
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
+
+/**
+ * @fileoverview The riff-chunks public API and private methods.
+ */
+
+/** @module riffChunks */
 
 /** @private */
 const byteData = require("byte-data");
@@ -14,8 +39,8 @@ const uInt32_ = {"bits": 32};
 const fourCC_ = {"bits": 32, "char": true};
 
 /**
- * Write the bytes of a RIFF/RIFX file.
- * @param {!Object} chunks A structure like the return of riffChunks.read().
+ * Pack a RIFF/RIFX file.
+ * @param {!Object} chunks A object like the return of riffChunks.read().
  * @param {boolean} list An optional param indicating if the chunk is LIST.
  *      "LIST" chunks should not be rendered as Uint8Array.
  * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
@@ -34,9 +59,9 @@ function write(chunks, list=false) {
 }
 
 /**
- * Get the chunks of a RIFF/RIFX file.
+ * Return the chunks of a RIFF/RIFX file.
  * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The chunk.
+ * @return {!Object} The RIFF chunks.
  */
 function read(buffer) {
     buffer = [].slice.call(buffer);
@@ -51,7 +76,7 @@ function read(buffer) {
 }
 
 /**
- * Write the sub chunks of a RIFF file.
+ * Pack the sub chunks of a RIFF file.
  * @param {!Array<!Object>} chunks The chunks.
  * @return {!Array<number>} The chunk bytes.
  * @private
@@ -74,7 +99,7 @@ function writeSubChunks_(chunks) {
 }
 
 /**
- * Get the sub chunks of a RIFF file.
+ * Return the sub chunks of a RIFF file.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
  * @private
@@ -91,7 +116,7 @@ function getSubChunks_(buffer) {
 }
 
 /**
- * Get a sub chunk from a RIFF file.
+ * Return a sub chunk from a RIFF file.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
  * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
