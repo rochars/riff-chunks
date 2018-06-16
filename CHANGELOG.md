@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 6.0.0 (2018-06-16)
+- Dist file renamed to riff-chunks.min.js.
+
 ## 5.0.0 (2018-06-12)
 - Add dist file to npm package.
 - update: byte-data to version 9
