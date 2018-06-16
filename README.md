@@ -16,12 +16,12 @@ npm install riff-chunks
 ## Browser
 Use the compiled file in the */dist* folder:
 ```html
-<script src="riff-chunks-min.js"></script>
+<script src="riff-chunks.min.js"></script>
 ```
 
 Or get it from the [jsDelivr](https://www.jsdelivr.com) CDN:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/riff-chunks@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/riff-chunks@6/dist/riff-chunks.min.js"></script>
 ```
 
 ## Example

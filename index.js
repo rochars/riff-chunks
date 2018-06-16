@@ -136,5 +136,7 @@ function getChunkSize_(buffer, index) {
     return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32_);
 }
 
+/** @export */
 module.exports.read = read;
+/** @export */
 module.exports.write = write;
