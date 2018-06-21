@@ -31,27 +31,27 @@
 
 /** @module riffChunks */
 
+import {pack, unpack} from 'byte-data';
+
 /** @private */
-const byteData = require("byte-data");
+const uInt32_ = {'bits': 32};
 /** @private */
-const uInt32_ = {"bits": 32};
-/** @private */
-const fourCC_ = {"bits": 32, "char": true};
+const fourCC_ = {'bits': 32, 'char': true};
 
 /**
  * Pack a RIFF/RIFX file.
  * @param {!Object} chunks A object like the return of riffChunks.read().
  * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      "LIST" chunks should not be rendered as Uint8Array.
+ *      'LIST' chunks should not be rendered as Uint8Array.
  * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      "RIFF"/"RIFX" or as Array<number> when chunkId is "LIST".
+ *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
  */
 function write(chunks, list=false) {
-    uInt32_["be"] = chunks["chunkId"] == "RIFX";
-    let bytes = byteData.pack(chunks["chunkId"], fourCC_).concat(
-        byteData.pack(chunks["chunkSize"], uInt32_),
-        byteData.pack(chunks["format"], fourCC_),
-        writeSubChunks_(chunks["subChunks"]));
+    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
+    let bytes = pack(chunks['chunkId'], fourCC_).concat(
+        pack(chunks['chunkSize'], uInt32_),
+        pack(chunks['format'], fourCC_),
+        writeSubChunks_(chunks['subChunks']));
     if (!list) {
         bytes = new Uint8Array(bytes);
     }
@@ -66,12 +66,12 @@ function write(chunks, list=false) {
 function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
-    uInt32_["be"] = chunkId == "RIFX";
+    uInt32_['be'] = chunkId == 'RIFX';
     return {
-        "chunkId": chunkId,
-        "chunkSize": getChunkSize_(buffer, 0),
-        "format": byteData.unpack(buffer.slice(8, 12), fourCC_),
-        "subChunks": getSubChunks_(buffer)
+        'chunkId': chunkId,
+        'chunkSize': getChunkSize_(buffer, 0),
+        'format': unpack(buffer.slice(8, 12), fourCC_),
+        'subChunks': getSubChunks_(buffer)
     };
 }
 
@@ -85,13 +85,13 @@ function writeSubChunks_(chunks) {
     let subChunks = [];
     let i = 0;
     while (i < chunks.length) {
-        if (chunks[i]["chunkId"] == "LIST") {
+        if (chunks[i]['chunkId'] == 'LIST') {
             subChunks = subChunks.concat(write(chunks[i], true));
         } else {
             subChunks = subChunks.concat(
-                byteData.pack(chunks[i]["chunkId"], fourCC_),
-                byteData.pack(chunks[i]["chunkSize"], uInt32_),
-                chunks[i]["chunkData"]);
+                pack(chunks[i]['chunkId'], fourCC_),
+                pack(chunks[i]['chunkSize'], uInt32_),
+                chunks[i]['chunkData']);
         }
         i++;
     }
@@ -109,7 +109,7 @@ function getSubChunks_(buffer) {
     let i = 12;
     while(i <= buffer.length - 8) {
         chunks.push(getSubChunk_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]["chunkSize"];
+        i += 8 + chunks[chunks.length - 1]['chunkSize'];
         i = i % 2 ? i + 1 : i;
     }
     return chunks;
@@ -124,16 +124,16 @@ function getSubChunks_(buffer) {
  */
 function getSubChunk_(buffer, index) {
     let chunk = {
-        "chunkId": getChunkId_(buffer, index),
-        "chunkSize": getChunkSize_(buffer, index),
+        'chunkId': getChunkId_(buffer, index),
+        'chunkSize': getChunkSize_(buffer, index),
     };
-    if (chunk["chunkId"] == "LIST") {
-        chunk["format"] = byteData.unpack(
+    if (chunk['chunkId'] == 'LIST') {
+        chunk['format'] = unpack(
             buffer.slice(index + 8, index + 12), fourCC_);
-        chunk["subChunks"] = getSubChunks_(buffer.slice(index));
+        chunk['subChunks'] = getSubChunks_(buffer.slice(index));
     } else {
-        let slc = chunk["chunkSize"] % 2 ? chunk["chunkSize"] + 1 : chunk["chunkSize"];
-        chunk["chunkData"] = buffer.slice(
+        let slc = chunk['chunkSize'] % 2 ? chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        chunk['chunkData'] = buffer.slice(
             index + 8, index + 8 + slc);
     }
     return chunk;
@@ -147,7 +147,7 @@ function getSubChunk_(buffer, index) {
  * @private
  */
 function getChunkId_(buffer, index) {
-    return byteData.unpack(buffer.slice(index, index + 4), fourCC_);
+    return unpack(buffer.slice(index, index + 4), fourCC_);
 }
 
 /**
@@ -158,10 +158,10 @@ function getChunkId_(buffer, index) {
  * @private
  */
 function getChunkSize_(buffer, index) {
-    return byteData.unpack(buffer.slice(index + 4, index + 8), uInt32_);
+    return unpack(buffer.slice(index + 4, index + 8), uInt32_);
 }
 
 /** @export */
-module.exports.read = read;
+export {read};
 /** @export */
-module.exports.write = write;
+export {write};

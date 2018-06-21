@@ -73,7 +73,7 @@ describe("riffChunks vs RIFF WAVE: Read file", function() {
 
 describe("riffChunks vs RIFF WAVE: Read file, write to object, read object", function() {
 
-    const riffChunks = require("../index.js");
+    const riffChunks = require("../test/loader.js");
     const fs = require("fs");
     
     let chunks0 = riffChunks.read(
@@ -115,7 +115,7 @@ describe("riffChunks vs RIFF WAVE: Read file, write to object, read object", fun
 
 describe("riffChunks vs RIFF WAVE: Read file, write file, read again", function() {
 
-    const riffChunks = require("../index.js");
+    const riffChunks = require("../test/loader.js");
     const fs = require("fs");
     
     let chunks0 = riffChunks.read(
