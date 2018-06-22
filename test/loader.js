@@ -6,24 +6,23 @@
 
 let riffChunks;
 
-// Browser bundle
+// Browser
 if (process.argv[3] == '--min') {
     require('browser-env')();
     require('../dist/riff-chunks.min.js');
     riffChunks = window.riffChunks;
 
-// UMD bundle
+// UMD
 } else if (process.argv[3] == '--umd') {
 	riffChunks = require('../dist/riff-chunks.umd.js');
 
-// CommonJS dist
+// CommonJS
 } else if (process.argv[3] == '--cjs') {
 	riffChunks = require('../dist/riff-chunks.cjs.js');
 
 // ESM
 } else {
 	riffChunks = require('../main.js');
-
 }
 
 module.exports = riffChunks;

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 7.0.0 (unreleased)
+- ES6 module
+- New API with riffIndex(): return only the offset of the values in the buffer.
+
 ## 6.0.0 (2018-06-16)
 - Dist file renamed to riff-chunks.min.js.
 

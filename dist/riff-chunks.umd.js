@@ -7,7 +7,7 @@
 		exports["riffChunks"] = factory();
 	else
 		root["riffChunks"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -81,6 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "read", function() { return read; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "write", function() { return write; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "riffIndex", function() { return riffIndex; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_byte_data__ = __webpack_require__(1);
 /*
  * riff-chunks: Read and write the chunks of RIFF and RIFX files.
@@ -121,6 +122,72 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 const uInt32_ = {'bits': 32};
 /** @private */
 const fourCC_ = {'bits': 32, 'char': true};
+/** @type {number} */
+let head_ = 0;
+
+/**
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
+ */
+function riffIndex(buffer) {
+    head_ = 0;
+    let chunkId = getChunkId_(buffer, 0);
+    uInt32_['be'] = chunkId == 'RIFX';
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, 8);
+    head_ += 4;
+    return {
+        'chunkId': chunkId,
+        'chunkSize': getChunkSize_(buffer, 0),
+        'format': format,
+        'subChunks': getSubChunksIndex_(buffer)
+    };
+}
+
+/**
+ * Return the sub chunks of a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunksIndex_(buffer) {
+    let chunks = [];
+    let i = head_;
+    while(i <= buffer.length - 8) {
+        chunks.push(getSubChunkIndex_(buffer, i));
+        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i = i % 2 ? i + 1 : i;
+    }
+    return chunks;
+}
+
+/**
+ * Return a sub chunk from a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunkIndex_(buffer, index) {
+    let chunk = {
+        'chunkId': getChunkId_(buffer, index),
+        'chunkSize': getChunkSize_(buffer, index),
+    };
+    if (chunk['chunkId'] == 'LIST') {
+        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, index + 8);
+        head_ += 4;
+        chunk['subChunks'] = getSubChunksIndex_(buffer);
+    } else {
+        let realChunkSize = chunk['chunkSize'] % 2 ?
+            chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        head_ = index + 8 + realChunkSize;
+        chunk['chunkData'] = {
+            'start': index + 8,
+            'end': head_
+        };
+    }
+    return chunk;
+}
 
 /**
  * Pack a RIFF/RIFX file.
@@ -151,11 +218,14 @@ function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
     uInt32_['be'] = chunkId == 'RIFX';
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(buffer.slice(8, 12), fourCC_);
+    let chunkSize = getChunkSize_(buffer, 0);
+    let subChunks = getSubChunks_(buffer);
     return {
         'chunkId': chunkId,
-        'chunkSize': getChunkSize_(buffer, 0),
-        'format': Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(buffer.slice(8, 12), fourCC_),
-        'subChunks': getSubChunks_(buffer)
+        'chunkSize': chunkSize,
+        'format': format,
+        'subChunks': subChunks
     };
 }
 
@@ -231,7 +301,8 @@ function getSubChunk_(buffer, index) {
  * @private
  */
 function getChunkId_(buffer, index) {
-    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(buffer.slice(index, index + 4), fourCC_);
+    head_ += 4;
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, index);
 }
 
 /**
@@ -242,12 +313,10 @@ function getChunkId_(buffer, index) {
  * @private
  */
 function getChunkSize_(buffer, index) {
-    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(buffer.slice(index + 4, index + 8), uInt32_);
+    head_ += 4;
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, uInt32_, index + 4);
 }
 
-/** @export */
-
-/** @export */
 
 
 
@@ -262,6 +331,8 @@ function getChunkSize_(buffer, index) {
 /* unused harmony export packArrayTo */
 /* harmony export (immutable) */ __webpack_exports__["b"] = unpack;
 /* unused harmony export unpackArray */
+/* harmony export (immutable) */ __webpack_exports__["c"] = unpackFrom;
+/* unused harmony export unpackArrayFrom */
 /* unused harmony export setReader */
 /* unused harmony export setWriter */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__lib_types_js__ = __webpack_require__(2);
@@ -383,7 +454,9 @@ function packArray(values, theType) {
  * Pack a number or a string as a byte buffer.
  * @param {number|string} value The value.
  * @param {!Object} theType The type definition.
- * @return {!Array<number>}
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number} index The buffer index to write.
+ * @return {number} The next index to start writing.
  * @throws {Error} If the type definition is not valid.
  * @throws {Error} If the value is not valid.
  */
@@ -406,7 +479,9 @@ function packTo(value, theType, buffer, index) {
  * Pack a number or a string as a byte buffer.
  * @param {number|string} value The value.
  * @param {!Object} theType The type definition.
- * @return {!Array<number>}
+ * @param {!Uint8Array|!Array<number>} buffer The output buffer.
+ * @param {number} index The buffer index to write.
+ * @return {number} The next index to start writing.
  * @throws {Error} If the type definition is not valid.
  * @throws {Error} If the value is not valid.
  */
@@ -441,7 +516,6 @@ function unpack(buffer, theType) {
     setUp_(theType);
     let values = fromBytes_(
         buffer.slice(0, theType['offset']), theType);
-    //return values ? values[0] : theType['char'] ? '' : null;
     return values[0];
 }
 
@@ -455,6 +529,62 @@ function unpack(buffer, theType) {
 function unpackArray(buffer, theType) {
     setUp_(theType);
     return fromBytes_(buffer, theType);
+}
+
+/**
+ * Unpack a number or a string from a byte buffer.
+ * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} index The buffer index to read.
+ * @return {number|string}
+ * @throws {Error} If the type definition is not valid
+ */
+function unpackFrom(buffer, theType, index=0) {
+    setUp_(theType);
+    return readBytes_(buffer, theType, index);
+}
+
+/**
+ * Unpack a number or a string from a byte buffer.
+ * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} theType The start index. Assumes 0.
+ * @param {?number=} theType The end index. Assumes the array length.
+ * @return {number|string}
+ * @throws {Error} If the type definition is not valid
+ */
+function unpackArrayFrom(buffer, theType, start=0, end=null) {
+    setUp_(theType);
+    if (theType['be']) {
+        Object(__WEBPACK_IMPORTED_MODULE_2_endianness__["a" /* endianness */])(buffer, theType['offset']);
+    }
+    let len = end || buffer.length;
+    let values = [];
+    for (let i=start; i<len; i+=theType['offset']) {
+        values.push(reader_(buffer, i));
+    }
+    if (theType['be']) {
+        Object(__WEBPACK_IMPORTED_MODULE_2_endianness__["a" /* endianness */])(buffer, theType['offset']);
+    }
+    return values;
+}
+
+/**
+ * Turn a byte buffer into what the bytes represent.
+ * @param {!Array<number|string>|!Uint8Array} buffer An array of bytes.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>}
+ * @private
+ */
+function readBytes_(buffer, theType, start) {
+    if (theType['be']) {
+        Object(__WEBPACK_IMPORTED_MODULE_2_endianness__["a" /* endianness */])(buffer, theType['offset'], start, start + theType['offset']);
+    }
+    let value = reader_(buffer, start);
+    if (theType['be']) {
+        Object(__WEBPACK_IMPORTED_MODULE_2_endianness__["a" /* endianness */])(buffer, theType['offset'], start, start + theType['offset']);
+    }
+    return value;
 }
 
 /**
@@ -820,7 +950,6 @@ function validateNotNull_(value) {
 }
 
 
-
 /***/ }),
 /* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -864,7 +993,6 @@ function validateNotNull_(value) {
  * @type {!Object}
  */
 const types = {
-
 	/**
 	 * A char.
 	 * @type {!Object}

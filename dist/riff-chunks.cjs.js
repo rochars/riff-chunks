@@ -71,6 +71,7 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "read", function() { return read; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "write", function() { return write; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "riffIndex", function() { return riffIndex; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_byte_data__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_byte_data___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_byte_data__);
 /*
@@ -112,6 +113,72 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 const uInt32_ = {'bits': 32};
 /** @private */
 const fourCC_ = {'bits': 32, 'char': true};
+/** @type {number} */
+let head_ = 0;
+
+/**
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
+ */
+function riffIndex(buffer) {
+    head_ = 0;
+    let chunkId = getChunkId_(buffer, 0);
+    uInt32_['be'] = chunkId == 'RIFX';
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpackFrom"])(buffer, fourCC_, 8);
+    head_ += 4;
+    return {
+        'chunkId': chunkId,
+        'chunkSize': getChunkSize_(buffer, 0),
+        'format': format,
+        'subChunks': getSubChunksIndex_(buffer)
+    };
+}
+
+/**
+ * Return the sub chunks of a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunksIndex_(buffer) {
+    let chunks = [];
+    let i = head_;
+    while(i <= buffer.length - 8) {
+        chunks.push(getSubChunkIndex_(buffer, i));
+        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i = i % 2 ? i + 1 : i;
+    }
+    return chunks;
+}
+
+/**
+ * Return a sub chunk from a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunkIndex_(buffer, index) {
+    let chunk = {
+        'chunkId': getChunkId_(buffer, index),
+        'chunkSize': getChunkSize_(buffer, index),
+    };
+    if (chunk['chunkId'] == 'LIST') {
+        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpackFrom"])(buffer, fourCC_, index + 8);
+        head_ += 4;
+        chunk['subChunks'] = getSubChunksIndex_(buffer);
+    } else {
+        let realChunkSize = chunk['chunkSize'] % 2 ?
+            chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        head_ = index + 8 + realChunkSize;
+        chunk['chunkData'] = {
+            'start': index + 8,
+            'end': head_
+        };
+    }
+    return chunk;
+}
 
 /**
  * Pack a RIFF/RIFX file.
@@ -142,11 +209,14 @@ function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
     uInt32_['be'] = chunkId == 'RIFX';
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpack"])(buffer.slice(8, 12), fourCC_);
+    let chunkSize = getChunkSize_(buffer, 0);
+    let subChunks = getSubChunks_(buffer);
     return {
         'chunkId': chunkId,
-        'chunkSize': getChunkSize_(buffer, 0),
-        'format': Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpack"])(buffer.slice(8, 12), fourCC_),
-        'subChunks': getSubChunks_(buffer)
+        'chunkSize': chunkSize,
+        'format': format,
+        'subChunks': subChunks
     };
 }
 
@@ -222,7 +292,8 @@ function getSubChunk_(buffer, index) {
  * @private
  */
 function getChunkId_(buffer, index) {
-    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpack"])(buffer.slice(index, index + 4), fourCC_);
+    head_ += 4;
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpackFrom"])(buffer, fourCC_, index);
 }
 
 /**
@@ -233,12 +304,10 @@ function getChunkId_(buffer, index) {
  * @private
  */
 function getChunkSize_(buffer, index) {
-    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpack"])(buffer.slice(index + 4, index + 8), uInt32_);
+    head_ += 4;
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["unpackFrom"])(buffer, uInt32_, index + 4);
 }
 
-/** @export */
-
-/** @export */
 
 
 
