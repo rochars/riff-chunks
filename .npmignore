@@ -14,4 +14,3 @@ test/
 .travis.yml
 appveyor.yml
 webpack.config.js
-compile.js
