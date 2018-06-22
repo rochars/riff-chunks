@@ -21,7 +21,12 @@ Use the compiled file in the */dist* folder:
 
 Or get it from the [jsDelivr](https://www.jsdelivr.com) CDN:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/riff-chunks@6/dist/riff-chunks.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/riff-chunks@7"></script>
+```
+
+Or get it from [unpkg](https://www.unpkg.com):
+```html
+<script src="https://unpkg.com/riff-chunks@7"></script>
 ```
 
 ## Example
