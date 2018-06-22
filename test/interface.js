@@ -4,7 +4,8 @@
  * 
  */
 
-var assert = require("assert");
+const assert = require("assert");
+const fs = require("fs");
 
 describe("interface", function() {
 
@@ -12,6 +13,10 @@ describe("interface", function() {
 
     it("Should have the read() function available", function() {
         assert.ok(riffChunks.read([]));
+    });
+    it("Should have the riffIndex() function available", function() {
+        assert.ok(riffChunks.riffIndex(
+            fs.readFileSync('./test/files/M1F1-int12WE-AFsp-NEW-TAGS.wav')));
     });
     it("Should have the write() function available", function() {
         assert.ok(riffChunks.write({
