@@ -333,8 +333,6 @@ function getChunkSize_(buffer, index) {
 /* unused harmony export unpackArray */
 /* harmony export (immutable) */ __webpack_exports__["c"] = unpackFrom;
 /* unused harmony export unpackArrayFrom */
-/* unused harmony export setReader */
-/* unused harmony export setWriter */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__lib_types_js__ = __webpack_require__(2);
 /* unused harmony reexport types */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lib_integer__ = __webpack_require__(3);
@@ -477,7 +475,7 @@ function packTo(value, theType, buffer, index) {
 
 /**
  * Pack a number or a string as a byte buffer.
- * @param {number|string} value The value.
+ * @param {number|string} values The value.
  * @param {!Object} theType The type definition.
  * @param {!Uint8Array|!Array<number>} buffer The output buffer.
  * @param {number} index The buffer index to write.
@@ -548,9 +546,9 @@ function unpackFrom(buffer, theType, index=0) {
  * Unpack a number or a string from a byte buffer.
  * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
  * @param {!Object} theType The type definition.
- * @param {number=} theType The start index. Assumes 0.
- * @param {?number=} theType The end index. Assumes the array length.
- * @return {number|string}
+ * @param {number=} start The start index. Assumes 0.
+ * @param {?number=} end The end index. Assumes the array length.
+ * @return {!Array<number>}
  * @throws {Error} If the type definition is not valid
  */
 function unpackArrayFrom(buffer, theType, start=0, end=null) {
@@ -573,7 +571,7 @@ function unpackArrayFrom(buffer, theType, start=0, end=null) {
  * Turn a byte buffer into what the bytes represent.
  * @param {!Array<number|string>|!Uint8Array} buffer An array of bytes.
  * @param {!Object} theType The type definition.
- * @return {!Array<number>}
+ * @return {number}
  * @private
  */
 function readBytes_(buffer, theType, start) {
@@ -634,10 +632,13 @@ function toBytes_(values, theType) {
 
 /**
  * Turn numbers and strings to bytes.
- * @param {!Array<number|string>} values The value to be packed.
+ * @param {number|string} value The value to be packed.
  * @param {!Object} theType The type definition.
  * @param {!Object} buffer The buffer to write the bytes to.
  * @param {number} index The index to start writing.
+ * @param {number} len The end index.
+ * @param {!Function} validate The function used to validate input.
+ * @param {boolean} be True if big-endian.
  * @return {number} the new index to be written.
  * @private
  */
@@ -858,7 +859,7 @@ function setUp_(theType) {
     setReader(theType);
     setWriter(theType);
     if (!theType['char']) {
-        gInt_ = new __WEBPACK_IMPORTED_MODULE_1__lib_integer__["a" /* default */](
+        gInt_ = new __WEBPACK_IMPORTED_MODULE_1__lib_integer__["a" /* Integer */](
             theType['bits'] == 64 ? 32 : theType['bits'],
             theType['float'] ? false : theType['signed']);
     } else {

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 7.0.1 (2018-06-23)
+- Update dependencies to use byte-data last compatible version.
+
 ## 7.0.0 (2018-06-22)
 - ES6 module
 - New API with riffIndex(): return only the offset of the values in the buffer.
