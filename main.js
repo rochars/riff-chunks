@@ -31,7 +31,7 @@
 
 /** @module riffChunks */
 
-import {pack, unpack, unpackFrom} from './node_modules/byte-data/dist/byte-data.esm.js';
+import {pack, unpack, unpackFrom} from 'byte-data';
 
 /** @private */
 const uInt32_ = {'bits': 32};

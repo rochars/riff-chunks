@@ -82,7 +82,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "read", function() { return read; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "write", function() { return write; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "riffIndex", function() { return riffIndex; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_byte_data__ = __webpack_require__(1);
 /*
  * riff-chunks: Read and write the chunks of RIFF and RIFX files.
  * https://github.com/rochars/riff-chunks
@@ -134,7 +134,7 @@ function riffIndex(buffer) {
     head_ = 0;
     let chunkId = getChunkId_(buffer, 0);
     uInt32_['be'] = chunkId == 'RIFX';
-    let format = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, 8);
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, 8);
     head_ += 4;
     return {
         'chunkId': chunkId,
@@ -174,7 +174,7 @@ function getSubChunkIndex_(buffer, index) {
         'chunkSize': getChunkSize_(buffer, index),
     };
     if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, index + 8);
+        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, index + 8);
         head_ += 4;
         chunk['subChunks'] = getSubChunksIndex_(buffer);
     } else {
@@ -199,9 +199,9 @@ function getSubChunkIndex_(buffer, index) {
  */
 function write(chunks, list=false) {
     uInt32_['be'] = chunks['chunkId'] == 'RIFX';
-    let bytes = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['chunkId'], fourCC_).concat(
-        Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['chunkSize'], uInt32_),
-        Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['format'], fourCC_),
+    let bytes = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["a" /* pack */])(chunks['chunkId'], fourCC_).concat(
+        Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["a" /* pack */])(chunks['chunkSize'], uInt32_),
+        Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["a" /* pack */])(chunks['format'], fourCC_),
         writeSubChunks_(chunks['subChunks']));
     if (!list) {
         bytes = new Uint8Array(bytes);
@@ -218,7 +218,7 @@ function read(buffer) {
     buffer = [].slice.call(buffer);
     let chunkId = getChunkId_(buffer, 0);
     uInt32_['be'] = chunkId == 'RIFX';
-    let format = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["b" /* unpack */])(buffer.slice(8, 12), fourCC_);
+    let format = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(buffer.slice(8, 12), fourCC_);
     let chunkSize = getChunkSize_(buffer, 0);
     let subChunks = getSubChunks_(buffer);
     return {
@@ -243,8 +243,8 @@ function writeSubChunks_(chunks) {
             subChunks = subChunks.concat(write(chunks[i], true));
         } else {
             subChunks = subChunks.concat(
-                Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks[i]['chunkId'], fourCC_),
-                Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks[i]['chunkSize'], uInt32_),
+                Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["a" /* pack */])(chunks[i]['chunkId'], fourCC_),
+                Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["a" /* pack */])(chunks[i]['chunkSize'], uInt32_),
                 chunks[i]['chunkData']);
         }
         i++;
@@ -282,7 +282,7 @@ function getSubChunk_(buffer, index) {
         'chunkSize': getChunkSize_(buffer, index),
     };
     if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["b" /* unpack */])(
+        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["b" /* unpack */])(
             buffer.slice(index + 8, index + 12), fourCC_);
         chunk['subChunks'] = getSubChunks_(buffer.slice(index));
     } else {
@@ -302,7 +302,7 @@ function getSubChunk_(buffer, index) {
  */
 function getChunkId_(buffer, index) {
     head_ += 4;
-    return Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, index);
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, fourCC_, index);
 }
 
 /**
@@ -314,7 +314,7 @@ function getChunkId_(buffer, index) {
  */
 function getChunkSize_(buffer, index) {
     head_ += 4;
-    return Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, uInt32_, index + 4);
+    return Object(__WEBPACK_IMPORTED_MODULE_0_byte_data__["c" /* unpackFrom */])(buffer, uInt32_, index + 4);
 }
 
 
