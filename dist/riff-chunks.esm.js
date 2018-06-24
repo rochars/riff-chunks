@@ -1,339 +1,3 @@
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
-	else if(typeof define === 'function' && define.amd)
-		define([], factory);
-	else if(typeof exports === 'object')
-		exports["riffChunks"] = factory();
-	else
-		root["riffChunks"] = factory();
-})(typeof self !== 'undefined' ? self : this, function() {
-return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "read", function() { return read; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "write", function() { return write; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "riffIndex", function() { return riffIndex; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__ = __webpack_require__(1);
-/*
- * riff-chunks: Read and write the chunks of RIFF and RIFX files.
- * https://github.com/rochars/riff-chunks
- *
- * Copyright (c) 2017-2018 Rafael da Silva Rocha.
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
-
-/**
- * @fileoverview The riff-chunks public API and private methods.
- */
-
-/** @module riffChunks */
-
-
-
-/** @private */
-const uInt32_ = {'bits': 32};
-/** @private */
-const fourCC_ = {'bits': 32, 'char': true};
-/** @type {number} */
-let head_ = 0;
-
-/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function riffIndex(buffer) {
-    head_ = 0;
-    let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
-    let format = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, 8);
-    head_ += 4;
-    return {
-        'chunkId': chunkId,
-        'chunkSize': getChunkSize_(buffer, 0),
-        'format': format,
-        'subChunks': getSubChunksIndex_(buffer)
-    };
-}
-
-/**
- * Return the sub chunks of a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunksIndex_(buffer) {
-    let chunks = [];
-    let i = head_;
-    while(i <= buffer.length - 8) {
-        chunks.push(getSubChunkIndex_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]['chunkSize'];
-        i = i % 2 ? i + 1 : i;
-    }
-    return chunks;
-}
-
-/**
- * Return a sub chunk from a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunkIndex_(buffer, index) {
-    let chunk = {
-        'chunkId': getChunkId_(buffer, index),
-        'chunkSize': getChunkSize_(buffer, index),
-    };
-    if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, index + 8);
-        head_ += 4;
-        chunk['subChunks'] = getSubChunksIndex_(buffer);
-    } else {
-        let realChunkSize = chunk['chunkSize'] % 2 ?
-            chunk['chunkSize'] + 1 : chunk['chunkSize'];
-        head_ = index + 8 + realChunkSize;
-        chunk['chunkData'] = {
-            'start': index + 8,
-            'end': head_
-        };
-    }
-    return chunk;
-}
-
-/**
- * Pack a RIFF/RIFX file.
- * @param {!Object} chunks A object like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      'LIST' chunks should not be rendered as Uint8Array.
- * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
- */
-function write(chunks, list=false) {
-    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
-    let bytes = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['chunkId'], fourCC_).concat(
-        Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['chunkSize'], uInt32_),
-        Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks['format'], fourCC_),
-        writeSubChunks_(chunks['subChunks']));
-    if (!list) {
-        bytes = new Uint8Array(bytes);
-    }
-    return bytes;
-}
-
-/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function read(buffer) {
-    buffer = [].slice.call(buffer);
-    let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
-    let format = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["b" /* unpack */])(buffer.slice(8, 12), fourCC_);
-    let chunkSize = getChunkSize_(buffer, 0);
-    let subChunks = getSubChunks_(buffer);
-    return {
-        'chunkId': chunkId,
-        'chunkSize': chunkSize,
-        'format': format,
-        'subChunks': subChunks
-    };
-}
-
-/**
- * Pack the sub chunks of a RIFF file.
- * @param {!Array<!Object>} chunks The chunks.
- * @return {!Array<number>} The chunk bytes.
- * @private
- */
-function writeSubChunks_(chunks) {
-    let subChunks = [];
-    let i = 0;
-    while (i < chunks.length) {
-        if (chunks[i]['chunkId'] == 'LIST') {
-            subChunks = subChunks.concat(write(chunks[i], true));
-        } else {
-            subChunks = subChunks.concat(
-                Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks[i]['chunkId'], fourCC_),
-                Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["a" /* pack */])(chunks[i]['chunkSize'], uInt32_),
-                chunks[i]['chunkData']);
-        }
-        i++;
-    }
-    return subChunks;
-}
-
-/**
- * Return the sub chunks of a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunks_(buffer) {
-    let chunks = [];
-    let i = 12;
-    while(i <= buffer.length - 8) {
-        chunks.push(getSubChunk_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]['chunkSize'];
-        i = i % 2 ? i + 1 : i;
-    }
-    return chunks;
-}
-
-/**
- * Return a sub chunk from a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunk_(buffer, index) {
-    let chunk = {
-        'chunkId': getChunkId_(buffer, index),
-        'chunkSize': getChunkSize_(buffer, index),
-    };
-    if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["b" /* unpack */])(
-            buffer.slice(index + 8, index + 12), fourCC_);
-        chunk['subChunks'] = getSubChunks_(buffer.slice(index));
-    } else {
-        let slc = chunk['chunkSize'] % 2 ? chunk['chunkSize'] + 1 : chunk['chunkSize'];
-        chunk['chunkData'] = buffer.slice(
-            index + 8, index + 8 + slc);
-    }
-    return chunk;
-}
-
-/**
- * Return the fourCC_ of a chunk.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {string} The id of the chunk.
- * @private
- */
-function getChunkId_(buffer, index) {
-    head_ += 4;
-    return Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, fourCC_, index);
-}
-
-/**
- * Return the size of a chunk.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {number} The size of the chunk without the id and size fields.
- * @private
- */
-function getChunkSize_(buffer, index) {
-    head_ += 4;
-    return Object(__WEBPACK_IMPORTED_MODULE_0__node_modules_byte_data_dist_byte_data_esm_js__["c" /* unpackFrom */])(buffer, uInt32_, index + 4);
-}
-
-
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return pack; });
-/* unused harmony export packArray */
-/* unused harmony export packTo */
-/* unused harmony export packArrayTo */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return unpack; });
-/* unused harmony export unpackArray */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return unpackFrom; });
-/* unused harmony export unpackArrayFrom */
-/* unused harmony export types */
 /*
  * byte-data: Pack and unpack binary data.
  * https://github.com/rochars/byte-data
@@ -360,229 +24,6 @@ function getChunkSize_(buffer, index) {
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-
-/**
- * @fileoverview Standard type definitions.
- */
-
-/**
- * byte-data standard types.
- * @type {!Object}
- */
-const types = {
-  /**
-   * A char.
-   * @type {!Object}
-   * @export
-   */
-  chr: {'bits': 8, 'char': true},
-  /**
-   * A 4-char string
-   * @type {!Object}
-   * @export
-   */
-  fourCC: {'bits': 32, 'char': true},
-  /**
-   * Booleans
-   * @type {!Object}
-   * @export
-   */
-  bool: {'bits': 1},
-  /**
-   * Signed 2-bit integers
-   * @type {!Object}
-   * @export
-   */
-  int2: {'bits': 2, 'signed': true},
-  /**
-   * Unsigned 2-bit integers
-   * @type {!Object}
-   * @export
-   */
-  uInt2: {'bits': 2},
-  /**
-   * Signed 4-bit integers
-   * @type {!Object}
-   * @export
-   */
-  int4: {'bits': 4, 'signed': true},
-  /**
-   * Unsigned 4-bit integers
-   * @type {!Object}
-   * @export
-   */
-  uInt4: {'bits': 4},
-  /**
-   * Signed 8-bit integers
-   * @type {!Object}
-   * @export
-   */
-  int8: {'bits': 8, 'signed': true},
-  /**
-   * Unsigned 4-bit integers
-   * @type {!Object}
-   * @export
-   */
-  uInt8: {'bits': 8},
-  // LE
-  /**
-   * Signed 16-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  int16 : {'bits': 16, 'signed': true},
-  /**
-   * Unsigned 16-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt16: {'bits': 16},
-  /**
-   * Half-precision floating-point numbers little-endian
-   * @type {!Object}
-   * @export
-   */
-  float16: {'bits': 16, 'float': true},
-  /**
-   * Signed 24-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  int24: {'bits': 24, 'signed': true},
-  /**
-   * Unsigned 24-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt24: {'bits': 24},
-  /**
-   * Signed 32-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  int32: {'bits': 32, 'signed': true},
-  /**
-   * Unsigned 32-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt32: {'bits': 32},
-  /**
-   * Single-precision floating-point numbers little-endian
-   * @type {!Object}
-   * @export
-   */
-  float32: {'bits': 32, 'float': true},
-  /**
-   * Signed 40-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  int40: {'bits': 40, 'signed': true},
-  /**
-   * Unsigned 40-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt40: {'bits': 40},
-  /**
-   * Signed 48-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  int48: {'bits': 48, 'signed': true},
-  /**
-   * Unsigned 48-bit integers little-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt48: {'bits': 48},
-  /**
-   * Double-precision floating-point numbers little-endian
-   * @type {!Object}
-   * @export
-   */
-  float64: {'bits': 64, 'float': true},
-  // BE
-  /**
-   * Signed 16-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  int16BE : {'bits': 16, 'signed': true, 'be': true},
-  /**
-   * Unsigned 16-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt16BE: {'bits': 16, 'be': true},
-  /**
-   * Half-precision floating-point numbers big-endian
-   * @type {!Object}
-   * @export
-   */
-  float16BE: {'bits': 16, 'float': true, 'be': true},
-  /**
-   * Signed 24-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  int24BE: {'bits': 24, 'signed': true, 'be': true},
-  /**
-   * Unsigned 24-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt24BE: {'bits': 24, 'be': true},
-  /**
-   * Signed 32-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  int32BE: {'bits': 32, 'signed': true, 'be': true},
-  /**
-   * Unsigned 32-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt32BE: {'bits': 32, 'be': true},
-  /**
-   * Single-precision floating-point numbers big-endian
-   * @type {!Object}
-   * @export
-   */
-  float32BE: {'bits': 32, 'float': true, 'be': true},
-  /**
-   * Signed 40-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  int40BE: {'bits': 40, 'signed': true, 'be': true},
-  /**
-   * Unsigned 40-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt40BE: {'bits': 40, 'be': true},
-  /**
-   * Signed 48-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  int48BE: {'bits': 48, 'signed': true, 'be': true},
-  /**
-   * Unsigned 48-bit integers big-endian
-   * @type {!Object}
-   * @export
-   */
-  uInt48BE: {'bits': 48, 'be': true},
-  /**
-   * Double-precision floating-point numbers big-endian
-   * @type {!Object}
-   * @export
-   */
-  float64BE: {'bits': 64, 'float': true, 'be': true},
-};
 
 /*
  * byte-data: Pack and unpack binary data.
@@ -990,74 +431,6 @@ function pack(value, theType) {
 }
 
 /**
- * Pack an array of numbers or strings to a byte buffer.
- * @param {!Array<number|string>} values The values.
- * @param {!Object} theType The type definition.
- * @return {!Array<number>}
- * @throws {Error} If the type definition is not valid.
- * @throws {Error} If any of the values are not valid.
- */
-function packArray(values, theType) {
-  setUp_(theType);
-  return toBytes_(values, theType);
-}
-
-/**
- * Pack a number or a string as a byte buffer.
- * @param {number|string} value The value.
- * @param {!Object} theType The type definition.
- * @param {!Uint8Array|!Array<number>} buffer The output buffer.
- * @param {number} index The buffer index to write.
- * @return {number} The next index to start writing.
- * @throws {Error} If the type definition is not valid.
- * @throws {Error} If the value is not valid.
- */
-function packTo(value, theType, buffer, index) {
-  setUp_(theType);
-  let validate = validateNotNull_;
-  if (theType['char']) {
-    validate = validateString_;
-  }
-  return writeBytes_(value,
-    theType,
-    buffer,
-    index,
-    index + theType['offset'],
-    validate,
-    theType['be']);
-}
-
-/**
- * Pack a number or a string as a byte buffer.
- * @param {number|string} values The value.
- * @param {!Object} theType The type definition.
- * @param {!Uint8Array|!Array<number>} buffer The output buffer.
- * @param {number} index The buffer index to write.
- * @return {number} The next index to start writing.
- * @throws {Error} If the type definition is not valid.
- * @throws {Error} If the value is not valid.
- */
-function packArrayTo(values, theType, buffer, index) {
-  setUp_(theType);
-  let validate = validateNotNull_;
-  if (theType['char']) {
-    validate = validateString_;
-  }
-  let be = theType['be'];
-  let offset = theType['offset'];
-  for (let i=0; i<values.length; i++) {
-    index = writeBytes_(
-      values[i],
-      theType,
-      buffer,
-      index,
-      index + offset,
-      validate, be);
-  }
-  return index;
-}
-
-/**
  * Unpack a number or a string from a byte buffer.
  * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
  * @param {!Object} theType The type definition.
@@ -1072,18 +445,6 @@ function unpack(buffer, theType) {
 }
 
 /**
- * Unpack an array of numbers or strings from a byte buffer.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
- * @param {!Object} theType The type definition.
- * @return {!Array<number|string>}
- * @throws {Error} If the type definition is not valid.
- */
-function unpackArray(buffer, theType) {
-  setUp_(theType);
-  return fromBytes_(buffer, theType);
-}
-
-/**
  * Unpack a number or a string from a byte buffer.
  * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
  * @param {!Object} theType The type definition.
@@ -1094,31 +455,6 @@ function unpackArray(buffer, theType) {
 function unpackFrom(buffer, theType, index=0) {
   setUp_(theType);
   return readBytes_(buffer, theType, index);
-}
-
-/**
- * Unpack a number or a string from a byte buffer.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
- * @param {!Object} theType The type definition.
- * @param {number=} start The start index. Assumes 0.
- * @param {?number=} end The end index. Assumes the array length.
- * @return {!Array<number>}
- * @throws {Error} If the type definition is not valid
- */
-function unpackArrayFrom(buffer, theType, start=0, end=null) {
-  setUp_(theType);
-  if (theType['be']) {
-    endianness(buffer, theType['offset']);
-  }
-  let len = end || buffer.length;
-  let values = [];
-  for (let i=start; i<len; i+=theType['offset']) {
-    values.push(reader_(buffer, i));
-  }
-  if (theType['be']) {
-    endianness(buffer, theType['offset']);
-  }
-  return values;
 }
 
 /**
@@ -1182,30 +518,6 @@ function toBytes_(values, theType) {
     endianness(bytes, theType['offset']);
   }
   return bytes;
-}
-
-/**
- * Turn numbers and strings to bytes.
- * @param {number|string} value The value to be packed.
- * @param {!Object} theType The type definition.
- * @param {!Object} buffer The buffer to write the bytes to.
- * @param {number} index The index to start writing.
- * @param {number} len The end index.
- * @param {!Function} validate The function used to validate input.
- * @param {boolean} be True if big-endian.
- * @return {number} the new index to be written.
- * @private
- */
-function writeBytes_(value, theType, buffer, index, len, validate, be) {
-  while (index < len) {
-    validate(value, theType);
-    index = writer_(buffer, value, index);
-  }
-  if (be) {
-    endianness(
-      buffer, theType['offset'], index - theType['offset'], index);
-  }
-  return index;
 }
 
 /**
@@ -1503,9 +815,230 @@ function validateNotNull_(value) {
   }
 }
 
+/*
+ * riff-chunks: Read and write the chunks of RIFF and RIFX files.
+ * https://github.com/rochars/riff-chunks
+ *
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
+/** @private */
+const uInt32_ = {'bits': 32};
+/** @private */
+const fourCC_ = {'bits': 32, 'char': true};
+/** @type {number} */
+let head_ = 0;
 
+/**
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
+ */
+function riffIndex(buffer) {
+    head_ = 0;
+    let chunkId = getChunkId_(buffer, 0);
+    uInt32_['be'] = chunkId == 'RIFX';
+    let format = unpackFrom(buffer, fourCC_, 8);
+    head_ += 4;
+    return {
+        'chunkId': chunkId,
+        'chunkSize': getChunkSize_(buffer, 0),
+        'format': format,
+        'subChunks': getSubChunksIndex_(buffer)
+    };
+}
 
-/***/ })
-/******/ ]);
-});
+/**
+ * Return the sub chunks of a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunksIndex_(buffer) {
+    let chunks = [];
+    let i = head_;
+    while(i <= buffer.length - 8) {
+        chunks.push(getSubChunkIndex_(buffer, i));
+        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i = i % 2 ? i + 1 : i;
+    }
+    return chunks;
+}
+
+/**
+ * Return a sub chunk from a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunkIndex_(buffer, index) {
+    let chunk = {
+        'chunkId': getChunkId_(buffer, index),
+        'chunkSize': getChunkSize_(buffer, index),
+    };
+    if (chunk['chunkId'] == 'LIST') {
+        chunk['format'] = unpackFrom(buffer, fourCC_, index + 8);
+        head_ += 4;
+        chunk['subChunks'] = getSubChunksIndex_(buffer);
+    } else {
+        let realChunkSize = chunk['chunkSize'] % 2 ?
+            chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        head_ = index + 8 + realChunkSize;
+        chunk['chunkData'] = {
+            'start': index + 8,
+            'end': head_
+        };
+    }
+    return chunk;
+}
+
+/**
+ * Pack a RIFF/RIFX file.
+ * @param {!Object} chunks A object like the return of riffChunks.read().
+ * @param {boolean} list An optional param indicating if the chunk is LIST.
+ *      'LIST' chunks should not be rendered as Uint8Array.
+ * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
+ *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
+ */
+function write(chunks, list=false) {
+    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
+    let bytes = pack(chunks['chunkId'], fourCC_).concat(
+        pack(chunks['chunkSize'], uInt32_),
+        pack(chunks['format'], fourCC_),
+        writeSubChunks_(chunks['subChunks']));
+    if (!list) {
+        bytes = new Uint8Array(bytes);
+    }
+    return bytes;
+}
+
+/**
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
+ */
+function read(buffer) {
+    buffer = [].slice.call(buffer);
+    let chunkId = getChunkId_(buffer, 0);
+    uInt32_['be'] = chunkId == 'RIFX';
+    let format = unpack(buffer.slice(8, 12), fourCC_);
+    let chunkSize = getChunkSize_(buffer, 0);
+    let subChunks = getSubChunks_(buffer);
+    return {
+        'chunkId': chunkId,
+        'chunkSize': chunkSize,
+        'format': format,
+        'subChunks': subChunks
+    };
+}
+
+/**
+ * Pack the sub chunks of a RIFF file.
+ * @param {!Array<!Object>} chunks The chunks.
+ * @return {!Array<number>} The chunk bytes.
+ * @private
+ */
+function writeSubChunks_(chunks) {
+    let subChunks = [];
+    let i = 0;
+    while (i < chunks.length) {
+        if (chunks[i]['chunkId'] == 'LIST') {
+            subChunks = subChunks.concat(write(chunks[i], true));
+        } else {
+            subChunks = subChunks.concat(
+                pack(chunks[i]['chunkId'], fourCC_),
+                pack(chunks[i]['chunkSize'], uInt32_),
+                chunks[i]['chunkData']);
+        }
+        i++;
+    }
+    return subChunks;
+}
+
+/**
+ * Return the sub chunks of a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunks_(buffer) {
+    let chunks = [];
+    let i = 12;
+    while(i <= buffer.length - 8) {
+        chunks.push(getSubChunk_(buffer, i));
+        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i = i % 2 ? i + 1 : i;
+    }
+    return chunks;
+}
+
+/**
+ * Return a sub chunk from a RIFF file.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
+ * @private
+ */
+function getSubChunk_(buffer, index) {
+    let chunk = {
+        'chunkId': getChunkId_(buffer, index),
+        'chunkSize': getChunkSize_(buffer, index),
+    };
+    if (chunk['chunkId'] == 'LIST') {
+        chunk['format'] = unpack(
+            buffer.slice(index + 8, index + 12), fourCC_);
+        chunk['subChunks'] = getSubChunks_(buffer.slice(index));
+    } else {
+        let slc = chunk['chunkSize'] % 2 ? chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        chunk['chunkData'] = buffer.slice(
+            index + 8, index + 8 + slc);
+    }
+    return chunk;
+}
+
+/**
+ * Return the fourCC_ of a chunk.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {string} The id of the chunk.
+ * @private
+ */
+function getChunkId_(buffer, index) {
+    head_ += 4;
+    return unpackFrom(buffer, fourCC_, index);
+}
+
+/**
+ * Return the size of a chunk.
+ * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {number} index The start index of the chunk.
+ * @return {number} The size of the chunk without the id and size fields.
+ * @private
+ */
+function getChunkSize_(buffer, index) {
+    head_ += 4;
+    return unpackFrom(buffer, uInt32_, index + 4);
+}
+
+export { read, write, riffIndex };

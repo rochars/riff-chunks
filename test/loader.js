@@ -21,6 +21,10 @@ if (process.argv[3] == '--min') {
 	riffChunks = require('../dist/riff-chunks.cjs.js');
 
 // ESM
+} else if (process.argv[3] == '--esm') {
+	riffChunks = require('../dist/riff-chunks.esm.js');
+
+// ESM
 } else {
 	riffChunks = require('../main.js');
 }
