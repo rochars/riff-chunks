@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 7.1.0 (2018-06-25)
+## 7.1.1 (2018-06-25)
 - Allow better use of this lib as a dependency:
 	- package.json refactored with bundlers and ES6 envs in mind
 	- Fix inconsistent JSDoc declarations
