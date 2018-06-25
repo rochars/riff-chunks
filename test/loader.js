@@ -26,9 +26,9 @@ if (process.argv[3] == '--min') {
 // ESM
 } else if (process.argv[3] == '--esm') {
 	console.log('esm');
-	riffChunks = require('../dist/riff-chunks.esm.js');
+	riffChunks = require('../dist/riff-chunks.js');
 
-// ESM
+// Source
 } else {
 	console.log('Source tests');
 	riffChunks = require('../main.js');

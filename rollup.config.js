@@ -5,19 +5,49 @@
 
 /**
  * @fileoverview rollup configuration file.
- * One dist file is created:
- * - riff-chunks.esm.js, ES6 module. All dependencies included.
  */
 
 import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default [
+  // cjs
+  {
+    input: 'main.js',
+    external: ['byte-data'],
+    output: [
+      {
+        file: 'dist/riff-chunks.cjs.js',
+        name: 'riff-chunks',
+        format: 'cjs'
+      }
+    ],
+    plugins: [
+      nodeResolve(),
+      commonjs(),
+    ]
+  },
+  // umd
   {
     input: 'main.js',
     output: [
       {
-        file: 'dist/riff-chunks.esm.js',
+        file: 'dist/riff-chunks.umd.js',
+        name: 'riff-chunks',
+        format: 'umd'
+      }
+    ],
+    plugins: [
+      nodeResolve(),
+      commonjs(),
+    ]
+  },
+  // esm
+  {
+    input: 'main.js',
+    output: [
+      {
+        file: 'dist/riff-chunks.js',
         format: 'es'
       }
     ],

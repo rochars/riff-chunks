@@ -25,35 +25,13 @@
  *
  */
 
-/*
- * byte-data: Pack and unpack binary data.
- * https://github.com/rochars/byte-data
- *
- * Copyright (c) 2017-2018 Rafael da Silva Rocha.
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+/**
+ * @fileoverview Pack and unpack two's complement ints and unsigned ints.
  */
 
 /**
- * @fileoverview Pack and unpack two's complement ints and unsigned ints.
+ * @module byteData/integer
+ * @ignore
  */
 
 /**
@@ -381,6 +359,74 @@ function swap(bytes, offset, index, limit) {
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+
+/*
+ * byte-data: Pack and unpack binary data.
+ * https://github.com/rochars/byte-data
+ *
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+/**
+ * Pack a number or a string as a byte buffer.
+ * @param {number|string} value The value.
+ * @param {!Object} theType The type definition.
+ * @return {!Array<number>}
+ * @throws {Error} If the type definition is not valid.
+ * @throws {Error} If the value is not valid.
+ */
+function pack(value, theType) {
+  setUp_(theType);
+  return toBytes_([value], theType);
+}
+
+/**
+ * Unpack a number or a string from a byte buffer.
+ * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @return {number|string}
+ * @throws {Error} If the type definition is not valid
+ */
+function unpack(buffer, theType) {
+  setUp_(theType);
+  let values = fromBytes_(
+    buffer.slice(0, theType['offset']), theType);
+  return values[0];
+}
+
+/**
+ * Unpack a number or a string from a byte buffer index.
+ * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
+ * @param {!Object} theType The type definition.
+ * @param {number=} index The buffer index to read.
+ * @return {number|string}
+ * @throws {Error} If the type definition is not valid
+ */
+function unpackFrom(buffer, theType, index=0) {
+  setUp_(theType);
+  return readBytes_(buffer, theType, index);
+}
+
 /**
  * @type {!Int8Array}
  * @private
@@ -416,46 +462,6 @@ let writer_;
  * @private
  */
 let gInt_ = {};
-
-/**
- * Pack a number or a string as a byte buffer.
- * @param {number|string} value The value.
- * @param {!Object} theType The type definition.
- * @return {!Array<number>}
- * @throws {Error} If the type definition is not valid.
- * @throws {Error} If the value is not valid.
- */
-function pack(value, theType) {
-  setUp_(theType);
-  return toBytes_([value], theType);
-}
-
-/**
- * Unpack a number or a string from a byte buffer.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
- * @param {!Object} theType The type definition.
- * @return {number|string}
- * @throws {Error} If the type definition is not valid
- */
-function unpack(buffer, theType) {
-  setUp_(theType);
-  let values = fromBytes_(
-    buffer.slice(0, theType['offset']), theType);
-  return values[0];
-}
-
-/**
- * Unpack a number or a string from a byte buffer.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
- * @param {!Object} theType The type definition.
- * @param {number=} index The buffer index to read.
- * @return {number|string}
- * @throws {Error} If the type definition is not valid
- */
-function unpackFrom(buffer, theType, index=0) {
-  setUp_(theType);
-  return readBytes_(buffer, theType, index);
-}
 
 /**
  * Turn a byte buffer into what the bytes represent.
@@ -497,7 +503,7 @@ function fromBytes_(buffer, theType) {
 
 /**
  * Turn numbers and strings to bytes.
- * @param {!Array<number|string>} values The data.
+ * @param {!Array<number|string>|string} values The data.
  * @param {!Object} theType The type definition.
  * @return {!Array<number|string>} the data as a byte buffer.
  * @private
@@ -804,6 +810,7 @@ function validateString_(value, theType) {
     throw new Error('String is smaller than its type definition.');
   }
 }
+
 /**
  * Validate that the value is not null.
  * @param {string|number} value The value.
@@ -842,15 +849,8 @@ function validateNotNull_(value) {
  *
  */
 
-/** @private */
-const uInt32_ = {'bits': 32};
-/** @private */
-const fourCC_ = {'bits': 32, 'char': true};
-/** @type {number} */
-let head_ = 0;
-
 /**
- * Return the chunks of a RIFF/RIFX file.
+ * Return the indexes of the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array|!Array<number>} buffer The file bytes.
  * @return {!Object} The RIFF chunks.
  */
@@ -865,6 +865,46 @@ function riffIndex(buffer) {
         'chunkSize': getChunkSize_(buffer, 0),
         'format': format,
         'subChunks': getSubChunksIndex_(buffer)
+    };
+}
+
+/**
+ * Pack a RIFF/RIFX file.
+ * @param {!Object} chunks A object like the return of riffChunks.read().
+ * @param {boolean} list An optional param indicating if the chunk is LIST.
+ *      'LIST' chunks should not be rendered as Uint8Array.
+ * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
+ *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
+ */
+function write(chunks, list=false) {
+    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
+    let bytes = pack(chunks['chunkId'], fourCC_).concat(
+        pack(chunks['chunkSize'], uInt32_),
+        pack(chunks['format'], fourCC_),
+        writeSubChunks_(chunks['subChunks']));
+    if (!list) {
+        bytes = new Uint8Array(bytes);
+    }
+    return bytes;
+}
+
+/**
+ * Return the chunks of a RIFF/RIFX file.
+ * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @return {!Object} The RIFF chunks.
+ */
+function read(buffer) {
+    buffer = [].slice.call(buffer);
+    let chunkId = getChunkId_(buffer, 0);
+    uInt32_['be'] = chunkId == 'RIFX';
+    let format = unpack(buffer.slice(8, 12), fourCC_);
+    let chunkSize = getChunkSize_(buffer, 0);
+    let subChunks = getSubChunks_(buffer);
+    return {
+        'chunkId': chunkId,
+        'chunkSize': chunkSize,
+        'format': format,
+        'subChunks': subChunks
     };
 }
 
@@ -911,46 +951,6 @@ function getSubChunkIndex_(buffer, index) {
         };
     }
     return chunk;
-}
-
-/**
- * Pack a RIFF/RIFX file.
- * @param {!Object} chunks A object like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      'LIST' chunks should not be rendered as Uint8Array.
- * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
- */
-function write(chunks, list=false) {
-    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
-    let bytes = pack(chunks['chunkId'], fourCC_).concat(
-        pack(chunks['chunkSize'], uInt32_),
-        pack(chunks['format'], fourCC_),
-        writeSubChunks_(chunks['subChunks']));
-    if (!list) {
-        bytes = new Uint8Array(bytes);
-    }
-    return bytes;
-}
-
-/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function read(buffer) {
-    buffer = [].slice.call(buffer);
-    let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
-    let format = unpack(buffer.slice(8, 12), fourCC_);
-    let chunkSize = getChunkSize_(buffer, 0);
-    let subChunks = getSubChunks_(buffer);
-    return {
-        'chunkId': chunkId,
-        'chunkSize': chunkSize,
-        'format': format,
-        'subChunks': subChunks
-    };
 }
 
 /**
@@ -1021,7 +1021,7 @@ function getSubChunk_(buffer, index) {
  * Return the fourCC_ of a chunk.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {string} The id of the chunk.
+ * @return {string|number} The id of the chunk.
  * @private
  */
 function getChunkId_(buffer, index) {
@@ -1033,7 +1033,7 @@ function getChunkId_(buffer, index) {
  * Return the size of a chunk.
  * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {number} The size of the chunk without the id and size fields.
+ * @return {string|number} The size of the chunk without the id and size fields.
  * @private
  */
 function getChunkSize_(buffer, index) {
@@ -1041,4 +1041,11 @@ function getChunkSize_(buffer, index) {
     return unpackFrom(buffer, uInt32_, index + 4);
 }
 
-export { read, write, riffIndex };
+/** @private */
+const uInt32_ = {'bits': 32};
+/** @private */
+const fourCC_ = {'bits': 32, 'char': true};
+/** @type {number} */
+let head_ = 0;
+
+export { riffIndex, write, read };
