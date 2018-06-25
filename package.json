@@ -1,6 +1,6 @@
 {
   "name": "riff-chunks",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "description": "Read and write the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael S. Rocha <rocha.rafaelsilva@gmail.com>",

@@ -33,6 +33,14 @@
 
 import {pack, unpack, unpackFrom} from 'byte-data';
 
+
+/** @private */
+const uInt32_ = {'bits': 32};
+/** @private */
+const fourCC_ = {'bits': 32, 'char': true};
+/** @type {number} */
+let head_ = 0;
+
 /**
  * Return the indexes of the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array|!Array<number>} buffer The file bytes.
@@ -224,10 +232,3 @@ function getChunkSize_(buffer, index) {
     head_ += 4;
     return unpackFrom(buffer, uInt32_, index + 4);
 }
-
-/** @private */
-const uInt32_ = {'bits': 32};
-/** @private */
-const fourCC_ = {'bits': 32, 'char': true};
-/** @type {number} */
-let head_ = 0;
