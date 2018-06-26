@@ -26,7 +26,7 @@
  */
 
 /**
- * @fileoverview The riff-chunks API and private methods.
+ * @fileoverview The riff-chunks API.
  */
 
 /** @module riffChunks */
@@ -39,7 +39,7 @@ const uInt32_ = {'bits': 32};
 let head_ = 0;
 
 /**
- * Return the indexes of the chunks in a RIFF/RIFX file.
+ * Return the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array} buffer The file bytes.
  * @return {!Object} The RIFF chunks.
  */

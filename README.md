@@ -16,7 +16,7 @@ npm install riff-chunks
 
 ### ES6
 ```javascript
-import {riffIndex} from 'riff-chunks';
+import riffChunks from 'riff-chunks';
 let chunks = riffIndex(riffFileBuffer);
 ```
 
@@ -24,7 +24,7 @@ let chunks = riffIndex(riffFileBuffer);
 ```javascript
 const riffChunks = require("riff-chunks");
 const fs = require("fs");
-let chunks = riffChunks.read(fs.readFileSync("file.wav"));
+let chunks = riffChunks(fs.readFileSync("file.wav"));
 ```
 
 ### Browser
@@ -32,18 +32,18 @@ Use the compiled file in the */dist* folder:
 ```html
 <script src="riff-chunks.min.js"></script>
 <script>
-var chunks = riffChunks.riffIndex(riffFileBuffer);
+var chunks = riffChunks(riffFileBuffer);
 </script>
 ```
 
 Or get it from the [jsDelivr](https://www.jsdelivr.com) CDN:
 ```html
-<script src="https://cdn.jsdelivr.net/npm/riff-chunks@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/riff-chunks@8"></script>
 ```
 
 Or get it from [unpkg](https://www.unpkg.com):
 ```html
-<script src="https://unpkg.com/riff-chunks@7"></script>
+<script src="https://unpkg.com/riff-chunks@8"></script>
 ```
 
 Or as a ES6 module in modern browsers from [jspm](https://jspm.io):
@@ -56,12 +56,12 @@ Or as a ES6 module in modern browsers from [jspm](https://jspm.io):
 
 ## API
 
-### riffChunks()
+### riffChunks(buffer)
 ```javascript
 /**
- * Return the indexes of the chunks in a RIFF/RIFX file.
+ * Return the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks indexes.
+ * @return {!Object} The RIFF chunks.
  */
 function riffChunks(buffer) {}
 ```
