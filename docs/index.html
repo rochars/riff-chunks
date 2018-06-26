@@ -22,7 +22,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-riffChunks.html">riffChunks</a><ul class='methods'><li data-type='method'><a href="module-riffChunks.html#.read">read</a></li><li data-type='method'><a href="module-riffChunks.html#.riffIndex">riffIndex</a></li><li data-type='method'><a href="module-riffChunks.html#.write">write</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-riffChunks.html">riffChunks</a></li></ul>
 </nav>
 
 <div id="main">
@@ -48,14 +48,11 @@
     <section class="readme">
         <article><h1>riff-chunks</h1><p>Copyright (c) 2017-2018 Rafael da Silva Rocha.<br>https://github.com/rochars/riff-chunks</p>
 <p><a href="https://www.npmjs.com/package/riff-chunks"><img src="https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge" alt="NPM version"></a> <a href="https://rochars.github.io/riff-chunks/index.html"><img src="https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge" alt="Docs"></a><br><a href="https://codecov.io/gh/rochars/riff-chunks"><img src="https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=flat-square" alt="Codecov"></a> <a href="https://travis-ci.org/rochars/riff-chunks"><img src="https://img.shields.io/travis/rochars/riff-chunks.svg?style=flat-square" alt="Unix Build"></a> <a href="https://ci.appveyor.com/project/rochars/riff-chunks"><img src="https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=flat-square&amp;logo=appveyor" alt="Windows Build"></a> <a href="https://scrutinizer-ci.com/g/rochars/riff-chunks/"><img src="https://img.shields.io/scrutinizer/g/rochars/riff-chunks.svg?style=flat-square&amp;logo=scrutinizer" alt="Scrutinizer"></a></p>
-<p>Read and write the chunks of RIFF and RIFX files.</p>
+<p>Parse the chunks of RIFF and RIFX files.</p>
 <h2>Install</h2><pre class="prettyprint source"><code>npm install riff-chunks</code></pre><h2>Use</h2><h3>ES6</h3><pre class="prettyprint source lang-javascript"><code>import {riffIndex} from 'riff-chunks';
-
 let chunks = riffIndex(riffFileBuffer);</code></pre><h3>Node</h3><pre class="prettyprint source lang-javascript"><code>const riffChunks = require(&quot;riff-chunks&quot;);
 const fs = require(&quot;fs&quot;);
-
-let chunks = riffChunks.read(fs.readFileSync(&quot;file.wav&quot;));
-fs.writeFileSync(&quot;output.wav&quot;, riffChunks.write(chunks));</code></pre><h3>Browser</h3><p>Use the compiled file in the <em>/dist</em> folder:</p>
+let chunks = riffChunks.read(fs.readFileSync(&quot;file.wav&quot;));</code></pre><h3>Browser</h3><p>Use the compiled file in the <em>/dist</em> folder:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;riff-chunks.min.js&quot;>&lt;/script>
 &lt;script>
 var chunks = riffChunks.riffIndex(riffFileBuffer);
@@ -63,14 +60,14 @@ var chunks = riffChunks.riffIndex(riffFileBuffer);
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/riff-chunks@7&quot;>&lt;/script></code></pre><p>Or get it from <a href="https://www.unpkg.com">unpkg</a>:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://unpkg.com/riff-chunks@7&quot;>&lt;/script></code></pre><p>Or as a ES6 module in modern browsers from <a href="https://jspm.io">jspm</a>:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script type=&quot;module&quot;>
-  import {write} from 'https://dev.jspm.io/riff-chunks';
+  import {riffIndex} from 'https://dev.jspm.io/riff-chunks';
   // ...
-&lt;/script></code></pre><h2>API</h2><h3>riffChunks.riffIndex()</h3><pre class="prettyprint source lang-javascript"><code>/**
+&lt;/script></code></pre><h2>API</h2><h3>riffChunks()</h3><pre class="prettyprint source lang-javascript"><code>/**
  * Return the indexes of the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array|!Array&lt;number>} buffer The file bytes.
  * @return {!Object} The RIFF chunks indexes.
  */
-function riffIndex(buffer) {}</code></pre><p><strong>riffChunks.riffIndex()</strong> returns a object like this:</p>
+function riffChunks(buffer) {}</code></pre><p><strong>riffChunks()</strong> returns a object like this:</p>
 <pre class="prettyprint source"><code>{
     &quot;chunkId&quot;: string,
     &quot;chunkSize&quot;: number,
@@ -85,33 +82,8 @@ function riffIndex(buffer) {}</code></pre><p><strong>riffChunks.riffIndex()</str
             }
         },
     ]
-}</code></pre><h3>riffChunks.read()</h3><pre class="prettyprint source lang-javascript"><code>/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array&lt;number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function read(buffer) {}</code></pre><p><strong>riffChunks.read()</strong> returns a object like this:</p>
-<pre class="prettyprint source"><code>{
-    &quot;chunkId&quot;: string,
-    &quot;chunkSize&quot;: number,
-    &quot;format&quot;: string,
-    &quot;subChunks&quot;: [
-        {
-            &quot;chunkId&quot;: string,
-            &quot;chunkSize&quot;: number,
-            &quot;chunkData&quot;: Array&lt;number>
-        },
-    ]
 }</code></pre><p>The <strong>chunkData</strong> field contains the raw bytes of the chunk data.</p>
-<h3>riffChunks.write()</h3><pre class="prettyprint source lang-javascript"><code>/**
- * Pack a RIFF/RIFX file.
- * @param {!Object} chunks A object like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      &quot;LIST&quot; chunks should not be rendered as Uint8Array.
- * @return {!Array&lt;number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      &quot;RIFF&quot;/&quot;RIFX&quot; or as Array&lt;number> when chunkId is &quot;LIST&quot;.
- */
-function write(chunks) {}</code></pre><h2>Distribution</h2><p>This library is a ES6 module also distributed as a CommonJS module, UMD and a compiled script for browsers.</p>
+<h2>Distribution</h2><p>This library is a ES6 module also distributed as a CommonJS module, UMD and a compiled script for browsers.</p>
 <ul>
 <li>The <strong>CommonJS</strong> is the one used by Node. It is served in the &quot;main&quot; field of package.json</li>
 <li>The <strong>UMD</strong> module is compatible with Node, AMD and browsers. It is served in the &quot;browser&quot; field.</li>
@@ -242,7 +214,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></article>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jun 25 2018 20:34:35 GMT-0300 (Hora oficial do Brasil) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Jun 26 2018 04:59:51 GMT-0300 (Hora oficial do Brasil) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

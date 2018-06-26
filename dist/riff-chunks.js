@@ -88,7 +88,7 @@ class Integer {
 
   /**
    * Read one integer number from a byte buffer.
-   * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+   * @param {!Uint8Array} bytes An array of bytes.
    * @param {number=} i The index to read.
    * @return {number}
    */
@@ -144,7 +144,7 @@ class Integer {
   /**
    * Read a integer number from a byte buffer by turning int bytes
    * to a string of bits. Used for data with more than 32 bits.
-   * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+   * @param {!Uint8Array} bytes An array of bytes.
    * @param {number=} i The index to read.
    * @return {number}
    * @private
@@ -360,6 +360,47 @@ function swap(bytes, offset, index, limit) {
  *
  */
 
+/**
+ * Validate the type definition.
+ * @param {!Object} theType The type definition.
+ * @throws {Error} If the type definition is not valid.
+ * @private
+ */
+function validateType(theType) {
+  if (!theType) {
+    throw new Error('Undefined type.');
+  }
+  if (theType['float']) {
+    validateFloatType_(theType);
+  } else {
+    validateIntType_(theType);
+  }
+}
+
+/**
+ * Validate the type definition of floating point numbers.
+ * @param {!Object} theType The type definition.
+ * @throws {Error} If the type definition is not valid.
+ * @private
+ */
+function validateFloatType_(theType) {
+  if ([16,32,64].indexOf(theType['bits']) == -1) {
+    throw new Error('Not a supported float type.');
+  }
+}
+
+/**
+ * Validate the type definition of integers.
+ * @param {!Object} theType The type definition.
+ * @throws {Error} If the type definition is not valid.
+ * @private
+ */
+function validateIntType_(theType) {
+  if (theType['bits'] < 1 || theType['bits'] > 53) {
+    throw new Error('Not a supported type.');
+  }
+}
+
 /*
  * byte-data: Pack and unpack binary data.
  * https://github.com/rochars/byte-data
@@ -387,44 +428,69 @@ function swap(bytes, offset, index, limit) {
  *
  */
 
-/**
- * Pack a number or a string as a byte buffer.
- * @param {number|string} value The value.
- * @param {!Object} theType The type definition.
- * @return {!Array<number>}
- * @throws {Error} If the type definition is not valid.
- * @throws {Error} If the value is not valid.
+/*
+ * byte-data: Pack and unpack binary data.
+ * https://github.com/rochars/byte-data
+ *
+ * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  */
-function pack(value, theType) {
-  setUp_(theType);
-  return toBytes_([value], theType);
+
+// UTF-16 Strings
+/**
+ * Read a UTF-16 string from a byte buffer.
+ * @param {!Uint8Array} bytes An array of bytes.
+ * @param {number=} index The index to read.
+ * @param {?number=} len The number of bytes to read.
+ * @return {string}
+ * @private
+ */
+function unpackString(bytes, index=0, len=null) {
+  let chrs = '';
+  len = len || bytes.length - index;
+  for(let j = 0; j < len; j++) {
+    chrs += String.fromCharCode(bytes[index+j]);
+  }
+  return chrs;
 }
 
 /**
- * Unpack a number or a string from a byte buffer.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
- * @param {!Object} theType The type definition.
- * @return {number|string}
- * @throws {Error} If the type definition is not valid
- */
-function unpack(buffer, theType) {
-  setUp_(theType);
-  let values = fromBytes_(
-    buffer.slice(0, theType['offset']), theType);
-  return values[0];
-}
-
-/**
- * Unpack a number or a string from a byte buffer index.
- * @param {!Array<number>|!Uint8Array} buffer The byte buffer.
+ * Unpack a number from a byte buffer index.
+ * @param {!Uint8Array} buffer The byte buffer.
  * @param {!Object} theType The type definition.
  * @param {number=} index The buffer index to read.
- * @return {number|string}
+ * @return {number}
  * @throws {Error} If the type definition is not valid
  */
 function unpackFrom(buffer, theType, index=0) {
   setUp_(theType);
-  return readBytes_(buffer, theType, index);
+  if (theType['be']) {
+    endianness(buffer, theType['offset'], index, index + theType['offset']);
+  }
+  let value = reader_(buffer, index);
+  if (theType['be']) {
+    endianness(buffer, theType['offset'], index, index + theType['offset']);
+  }
+  return value;
 }
 
 /**
@@ -453,82 +519,14 @@ const f64_ = new Float64Array(int8_.buffer);
  */
 let reader_;
 /**
- * @type {Function}
- * @private
- */
-let writer_;
-/**
  * @type {Object}
  * @private
  */
 let gInt_ = {};
 
 /**
- * Turn a byte buffer into what the bytes represent.
- * @param {!Array<number|string>|!Uint8Array} buffer An array of bytes.
- * @param {!Object} theType The type definition.
- * @return {number}
- * @private
- */
-function readBytes_(buffer, theType, start) {
-  if (theType['be']) {
-    endianness(buffer, theType['offset'], start, start + theType['offset']);
-  }
-  let value = reader_(buffer, start);
-  if (theType['be']) {
-    endianness(buffer, theType['offset'], start, start + theType['offset']);
-  }
-  return value;
-}
-
-/**
- * Turn a byte buffer into what the bytes represent.
- * @param {!Array<number|string>|!Uint8Array} buffer An array of bytes.
- * @param {!Object} theType The type definition.
- * @return {!Array<number>}
- * @private
- */
-function fromBytes_(buffer, theType) {
-  if (theType['be']) {
-    endianness(buffer, theType['offset']);
-  }
-  let len = buffer.length;
-  let values = [];
-  len = len - (theType['offset'] - 1);
-  for (let i=0; i<len; i+=theType['offset']) {
-    values.push(reader_(buffer, i));
-  }
-  return values;
-}
-
-/**
- * Turn numbers and strings to bytes.
- * @param {!Array<number|string>|string} values The data.
- * @param {!Object} theType The type definition.
- * @return {!Array<number|string>} the data as a byte buffer.
- * @private
- */
-function toBytes_(values, theType) {
-  let j = 0;
-  let bytes = [];
-  let len = values.length;
-  let validate = validateNotNull_;
-  if (theType['char']) {
-    validate = validateString_;
-  }
-  for(let i=0; i < len; i++) {
-    validate(values[i], theType);
-    j = writer_(bytes, values[i], j);
-  }
-  if (theType['be']) {
-    endianness(bytes, theType['offset']);
-  }
-  return bytes;
-}
-
-/**
  * Read int values from bytes.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+ * @param {!Uint8Array} bytes An array of bytes.
  * @param {number} i The index to read.
  * @return {number}
  * @private
@@ -540,7 +538,7 @@ function readInt_(bytes, i) {
 /**
  * Read 1 16-bit float from bytes.
  * Thanks https://stackoverflow.com/a/8796597
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+ * @param {!Uint8Array} bytes An array of bytes.
  * @param {number} i The index to read.
  * @return {number}
  * @private
@@ -560,7 +558,7 @@ function read16F_(bytes, i) {
 
 /**
  * Read 1 32-bit float from bytes.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+ * @param {!Uint8Array} bytes An array of bytes.
  * @param {number} i The index to read.
  * @return {number}
  * @private
@@ -573,7 +571,7 @@ function read32F_(bytes, i) {
 /**
  * Read 1 64-bit float from bytes.
  * Thanks https://gist.github.com/kg/2192799
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
+ * @param {!Uint8Array} bytes An array of bytes.
  * @param {number} i The index to read.
  * @return {number}
  * @private
@@ -582,98 +580,6 @@ function read64F_(bytes, i) {
   ui32_[0] = gInt_.read(bytes, i);
   ui32_[1] = gInt_.read(bytes, i + 4);
   return f64_[0];
-}
-
-/**
- * Read 1 char from bytes.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {number} i The index to read.
- * @return {string}
- * @private
- */
-function readChar_(bytes, i) {
-  let chrs = '';
-  for(let j=0; j < gInt_.offset; j++) {
-    chrs += String.fromCharCode(bytes[i+j]);
-  }
-  return chrs;
-}
-
-/**
- * Write a integer value to a byte buffer.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {!number} The next index to write on the byte buffer.
- * @private
- */
-function writeInt_(bytes, number, j) {
-  return gInt_.write(bytes, number, j);
-}
-
-/**
- * Write one 16-bit float as a binary value.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write16F_(bytes, number, j) {
-  f32_[0] = number;
-  let x = ui32_[0];
-  let bits = (x >> 16) & 0x8000;
-  let m = (x >> 12) & 0x07ff;
-  let e = (x >> 23) & 0xff;
-  if (e >= 103) {
-    bits |= ((e - 112) << 10) | (m >> 1);
-    bits += m & 1;
-  }
-  bytes[j++] = bits & 0xFF;
-  bytes[j++] = bits >>> 8 & 0xFF;
-  return j;
-}
-
-/**
- * Write one 32-bit float as a binary value.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write32F_(bytes, number, j) {
-  f32_[0] = number;
-  return gInt_.write(bytes, ui32_[0], j);
-}
-
-/**
- * Write one 64-bit float as a binary value.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {number} number The number to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function write64F_(bytes, number, j) {
-  f64_[0] = number;
-  j = gInt_.write(bytes, ui32_[0], j);
-  return gInt_.write(bytes, ui32_[1], j);
-}
-
-/**
- * Write one char as a byte.
- * @param {!Array<number>|!Uint8Array} bytes An array of bytes.
- * @param {string} str The string to write as bytes.
- * @param {number} j The index being written in the byte buffer.
- * @return {number} The next index to write on the byte buffer.
- * @private
- */
-function writeChar_(bytes, str, j) {
-  for (let i=0; i<str.length; i++) {
-    bytes[j++] = str.charCodeAt(i);
-  }
-  return j;
 }
 
 /**
@@ -690,8 +596,6 @@ function setReader(theType) {
     } else if(theType['bits'] == 64) {
       reader_ = read64F_;
     }
-  } else if (theType['char']) {
-    reader_ = readChar_;
   } else {
     reader_ = readInt_;
   }
@@ -704,17 +608,7 @@ function setReader(theType) {
  */
 function setWriter(theType) {
   if (theType['float']) {
-    if (theType['bits'] == 16) {
-      writer_ = write16F_;
-    } else if(theType['bits'] == 32) {
-      writer_ = write32F_;
-    } else if(theType['bits'] == 64) {
-      writer_ = write64F_;
-    }
-  } else if (theType['char']) {
-    writer_ = writeChar_;
-  } else {
-    writer_ = writeInt_;
+    if (theType['bits'] == 16) ; else if(theType['bits'] == 32) ; else if(theType['bits'] == 64) ;
   }   
 }
 
@@ -725,101 +619,13 @@ function setWriter(theType) {
  * @private
  */
 function setUp_(theType) {
-  validateType_(theType);
+  validateType(theType);
   theType['offset'] = theType['bits'] < 8 ? 1 : Math.ceil(theType['bits'] / 8);
   setReader(theType);
   setWriter(theType);
-  if (!theType['char']) {
-    gInt_ = new Integer(
-      theType['bits'] == 64 ? 32 : theType['bits'],
-      theType['float'] ? false : theType['signed']);
-  } else {
-    // Workaround; should not use Integer when type['char']
-    gInt_.offset = theType['bits'] < 8 ? 1 : Math.ceil(theType['bits'] / 8);
-  }
-}
-
-/**
- * Validate the type definition.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- * @private
- */
-function validateType_(theType) {
-  if (!theType) {
-    throw new Error('Undefined type.');
-  }
-  if (theType['float']) {
-    validateFloatType_(theType);
-  } else {
-    if (theType['char']) {
-      validateCharType_(theType);
-    } else {
-      validateIntType_(theType);
-    }
-  }
-}
-
-/**
- * Validate the type definition of floating point numbers.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- * @private
- */
-function validateFloatType_(theType) {
-  if ([16,32,64].indexOf(theType['bits']) == -1) {
-    throw new Error('Not a supported float type.');
-  }
-}
-
-/**
- * Validate the type definition of char and strings.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- * @private
- */
-function validateCharType_(theType) {
-  if (theType['bits'] < 8 || theType['bits'] % 2) {
-    throw new Error('Wrong offset for type char.');
-  }
-}
-
-/**
- * Validate the type definition of integers.
- * @param {!Object} theType The type definition.
- * @throws {Error} If the type definition is not valid.
- * @private
- */
-function validateIntType_(theType) {
-  if (theType['bits'] < 1 || theType['bits'] > 53) {
-    throw new Error('Not a supported type.');
-  }
-}
-
-/**
- * Validate strings with bad length.
- * @param {string|number} value The string to validate.
- * @param {!Object} theType The type definition.
- * @private
- */
-function validateString_(value, theType) {
-  validateNotNull_(value);
-  if (value.length > theType['offset']) {
-    throw new Error('String is bigger than its type definition.');
-  } else if (value.length < theType['offset']) {
-    throw new Error('String is smaller than its type definition.');
-  }
-}
-
-/**
- * Validate that the value is not null.
- * @param {string|number} value The value.
- * @private
- */
-function validateNotNull_(value) {
-  if (value === null || value === undefined) {
-    throw new Error('Cannot pack null or undefined values.');
-  }
+  gInt_ = new Integer(
+    theType['bits'] == 64 ? 32 : theType['bits'],
+    theType['float'] ? false : theType['signed']);
 }
 
 /*
@@ -849,24 +655,21 @@ function validateNotNull_(value) {
  *
  */
 
-
 /** @private */
 const uInt32_ = {'bits': 32};
-/** @private */
-const fourCC_ = {'bits': 32, 'char': true};
 /** @type {number} */
 let head_ = 0;
 
 /**
  * Return the indexes of the chunks in a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
+ * @param {!Uint8Array} buffer The file bytes.
  * @return {!Object} The RIFF chunks.
  */
-function riffIndex(buffer) {
+function riffChunks(buffer) {
     head_ = 0;
     let chunkId = getChunkId_(buffer, 0);
     uInt32_['be'] = chunkId == 'RIFX';
-    let format = unpackFrom(buffer, fourCC_, 8);
+    let format = unpackString(buffer, 8, 4);
     head_ += 4;
     return {
         'chunkId': chunkId,
@@ -877,48 +680,8 @@ function riffIndex(buffer) {
 }
 
 /**
- * Pack a RIFF/RIFX file.
- * @param {!Object} chunks A object like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      'LIST' chunks should not be rendered as Uint8Array.
- * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      'RIFF'/'RIFX' or as Array<number> when chunkId is 'LIST'.
- */
-function write(chunks, list=false) {
-    uInt32_['be'] = chunks['chunkId'] == 'RIFX';
-    let bytes = pack(chunks['chunkId'], fourCC_).concat(
-        pack(chunks['chunkSize'], uInt32_),
-        pack(chunks['format'], fourCC_),
-        writeSubChunks_(chunks['subChunks']));
-    if (!list) {
-        bytes = new Uint8Array(bytes);
-    }
-    return bytes;
-}
-
-/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function read(buffer) {
-    buffer = [].slice.call(buffer);
-    let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
-    let format = unpack(buffer.slice(8, 12), fourCC_);
-    let chunkSize = getChunkSize_(buffer, 0);
-    let subChunks = getSubChunks_(buffer);
-    return {
-        'chunkId': chunkId,
-        'chunkSize': chunkSize,
-        'format': format,
-        'subChunks': subChunks
-    };
-}
-
-/**
  * Return the sub chunks of a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!Uint8Array} buffer the RIFF file bytes.
  * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
  * @private
  */
@@ -935,7 +698,7 @@ function getSubChunksIndex_(buffer) {
 
 /**
  * Return a sub chunk from a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!Uint8Array} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
  * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
  * @private
@@ -946,7 +709,7 @@ function getSubChunkIndex_(buffer, index) {
         'chunkSize': getChunkSize_(buffer, index),
     };
     if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = unpackFrom(buffer, fourCC_, index + 8);
+        chunk['format'] = unpackString(buffer, index + 8, 4);
         head_ += 4;
         chunk['subChunks'] = getSubChunksIndex_(buffer);
     } else {
@@ -962,86 +725,22 @@ function getSubChunkIndex_(buffer, index) {
 }
 
 /**
- * Pack the sub chunks of a RIFF file.
- * @param {!Array<!Object>} chunks The chunks.
- * @return {!Array<number>} The chunk bytes.
- * @private
- */
-function writeSubChunks_(chunks) {
-    let subChunks = [];
-    let i = 0;
-    while (i < chunks.length) {
-        if (chunks[i]['chunkId'] == 'LIST') {
-            subChunks = subChunks.concat(write(chunks[i], true));
-        } else {
-            subChunks = subChunks.concat(
-                pack(chunks[i]['chunkId'], fourCC_),
-                pack(chunks[i]['chunkSize'], uInt32_),
-                chunks[i]['chunkData']);
-        }
-        i++;
-    }
-    return subChunks;
-}
-
-/**
- * Return the sub chunks of a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @return {!Array<Object>} The subchunks of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunks_(buffer) {
-    let chunks = [];
-    let i = 12;
-    while(i <= buffer.length - 8) {
-        chunks.push(getSubChunk_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]['chunkSize'];
-        i = i % 2 ? i + 1 : i;
-    }
-    return chunks;
-}
-
-/**
- * Return a sub chunk from a RIFF file.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
- * @param {number} index The start index of the chunk.
- * @return {!Object} A subchunk of a RIFF/RIFX or LIST chunk.
- * @private
- */
-function getSubChunk_(buffer, index) {
-    let chunk = {
-        'chunkId': getChunkId_(buffer, index),
-        'chunkSize': getChunkSize_(buffer, index),
-    };
-    if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = unpack(
-            buffer.slice(index + 8, index + 12), fourCC_);
-        chunk['subChunks'] = getSubChunks_(buffer.slice(index));
-    } else {
-        let slc = chunk['chunkSize'] % 2 ? chunk['chunkSize'] + 1 : chunk['chunkSize'];
-        chunk['chunkData'] = buffer.slice(
-            index + 8, index + 8 + slc);
-    }
-    return chunk;
-}
-
-/**
  * Return the fourCC_ of a chunk.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!Uint8Array} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {string|number} The id of the chunk.
+ * @return {string} The id of the chunk.
  * @private
  */
 function getChunkId_(buffer, index) {
     head_ += 4;
-    return unpackFrom(buffer, fourCC_, index);
+    return unpackString(buffer, index, 4);
 }
 
 /**
  * Return the size of a chunk.
- * @param {!Uint8Array|!Array<number>} buffer the RIFF file bytes.
+ * @param {!Uint8Array} buffer the RIFF file bytes.
  * @param {number} index The start index of the chunk.
- * @return {string|number} The size of the chunk without the id and size fields.
+ * @return {number} The size of the chunk without the id and size fields.
  * @private
  */
 function getChunkSize_(buffer, index) {
@@ -1049,4 +748,4 @@ function getChunkSize_(buffer, index) {
     return unpackFrom(buffer, uInt32_, index + 4);
 }
 
-export { riffIndex, write, read };
+export default riffChunks;

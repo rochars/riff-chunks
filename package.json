@@ -1,7 +1,7 @@
 {
   "name": "riff-chunks",
-  "version": "7.1.1",
-  "description": "Read and write the chunks of RIFF and RIFX files.",
+  "version": "8.0.0-alpha.1",
+  "description": "Parse the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael S. Rocha <rocha.rafaelsilva@gmail.com>",
   "license": "MIT",
@@ -67,6 +67,6 @@
     "webpack-cli": "^3.0.8"
   },
   "dependencies": {
-    "byte-data": "^11.1.0"
+    "byte-data": "^12.0.0"
   }
 }

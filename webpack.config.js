@@ -32,22 +32,9 @@ module.exports = [
           warningLevel: 'VERBOSE',
           exportLocalPropertyDefinitions: true,
           generateExports: true,
+          outputWrapper: '%output%window.riffChunks=window.riffChunks.default;'
         }
       })
     ]
-  },
-  // Browser dist with dependencies, compiled.
-  {
-    entry: './main.js',
-    mode: 'production',
-    resolve: {
-      mainFields: ['module', 'main']
-    },
-    optimization: {minimize:false},
-    output: {
-      filename: 'riff-chunks.browser.js',
-      library: "riffChunks",
-      libraryTarget: "window"
-    }
   }
 ];

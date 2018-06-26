@@ -5,7 +5,7 @@ https://github.com/rochars/riff-chunks
 [![NPM version](https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge)](https://www.npmjs.com/package/riff-chunks) [![Docs](https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge)](https://rochars.github.io/riff-chunks/index.html)  
 [![Codecov](https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=flat-square)](https://codecov.io/gh/rochars/riff-chunks) [![Unix Build](https://img.shields.io/travis/rochars/riff-chunks.svg?style=flat-square)](https://travis-ci.org/rochars/riff-chunks) [![Windows Build](https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=flat-square&logo=appveyor)](https://ci.appveyor.com/project/rochars/riff-chunks) [![Scrutinizer](https://img.shields.io/scrutinizer/g/rochars/riff-chunks.svg?style=flat-square&logo=scrutinizer)](https://scrutinizer-ci.com/g/rochars/riff-chunks/)
 
-Read and write the chunks of RIFF and RIFX files.
+Parse the chunks of RIFF and RIFX files.
 
 ## Install
 ```
@@ -17,7 +17,6 @@ npm install riff-chunks
 ### ES6
 ```javascript
 import {riffIndex} from 'riff-chunks';
-
 let chunks = riffIndex(riffFileBuffer);
 ```
 
@@ -25,9 +24,7 @@ let chunks = riffIndex(riffFileBuffer);
 ```javascript
 const riffChunks = require("riff-chunks");
 const fs = require("fs");
-
 let chunks = riffChunks.read(fs.readFileSync("file.wav"));
-fs.writeFileSync("output.wav", riffChunks.write(chunks));
 ```
 
 ### Browser
@@ -52,24 +49,24 @@ Or get it from [unpkg](https://www.unpkg.com):
 Or as a ES6 module in modern browsers from [jspm](https://jspm.io):
 ```html
 <script type="module">
-  import {write} from 'https://dev.jspm.io/riff-chunks';
+  import {riffIndex} from 'https://dev.jspm.io/riff-chunks';
   // ...
 </script>
 ```
 
 ## API
 
-### riffChunks.riffIndex()
+### riffChunks()
 ```javascript
 /**
  * Return the indexes of the chunks in a RIFF/RIFX file.
  * @param {!Uint8Array|!Array<number>} buffer The file bytes.
  * @return {!Object} The RIFF chunks indexes.
  */
-function riffIndex(buffer) {}
+function riffChunks(buffer) {}
 ```
 
-**riffChunks.riffIndex()** returns a object like this:
+**riffChunks()** returns a object like this:
 ```
 {
     "chunkId": string,
@@ -88,46 +85,7 @@ function riffIndex(buffer) {}
 }
 ```
 
-### riffChunks.read()
-```javascript
-/**
- * Return the chunks of a RIFF/RIFX file.
- * @param {!Uint8Array|!Array<number>} buffer The file bytes.
- * @return {!Object} The RIFF chunks.
- */
-function read(buffer) {}
-```
-
-**riffChunks.read()** returns a object like this:
-```
-{
-    "chunkId": string,
-    "chunkSize": number,
-    "format": string,
-    "subChunks": [
-        {
-            "chunkId": string,
-            "chunkSize": number,
-            "chunkData": Array<number>
-        },
-    ]
-}
-```
-
 The **chunkData** field contains the raw bytes of the chunk data.
-
-### riffChunks.write()
-```javascript
-/**
- * Pack a RIFF/RIFX file.
- * @param {!Object} chunks A object like the return of riffChunks.read().
- * @param {boolean} list An optional param indicating if the chunk is LIST.
- *      "LIST" chunks should not be rendered as Uint8Array.
- * @return {!Array<number>|!Uint8Array} The bytes as Uint8Array when chunkId is
- *      "RIFF"/"RIFX" or as Array<number> when chunkId is "LIST".
- */
-function write(chunks) {}
-```
 
 ## Distribution
 This library is a ES6 module also distributed as a CommonJS module, UMD and a compiled script for browsers.
