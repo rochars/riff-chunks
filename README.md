@@ -17,7 +17,7 @@ npm install riff-chunks
 ### ES6
 ```javascript
 import riffChunks from 'riff-chunks';
-let chunks = riffIndex(riffFileBuffer);
+let chunks = riffChunks(riffFileBuffer);
 ```
 
 ### Node
@@ -49,7 +49,7 @@ Or get it from [unpkg](https://www.unpkg.com):
 Or as a ES6 module in modern browsers from [jspm](https://jspm.io):
 ```html
 <script type="module">
-  import {riffIndex} from 'https://dev.jspm.io/riff-chunks';
+  import riffChunks from 'https://dev.jspm.io/riff-chunks';
   // ...
 </script>
 ```

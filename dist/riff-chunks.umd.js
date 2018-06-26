@@ -461,10 +461,10 @@
    *
    */
 
-  // UTF-16 Strings
+  // Strings
   /**
-   * Read a UTF-16 string from a byte buffer.
-   * @param {!Uint8Array} bytes An array of bytes.
+   * Read a string from a byte buffer.
+   * @param {!Uint8Array} bytes A byte buffer.
    * @param {number=} index The index to read.
    * @param {?number=} len The number of bytes to read.
    * @return {string}
@@ -480,7 +480,7 @@
   }
 
   /**
-   * Unpack a number from a byte buffer index.
+   * Unpack a number from a byte buffer by index.
    * @param {!Uint8Array} buffer The byte buffer.
    * @param {!Object} theType The type definition.
    * @param {number=} index The buffer index to read.
