@@ -358,13 +358,12 @@ function swap(bytes, offset, index, limit) {
  * Validate the type definition.
  * @param {!Object} theType The type definition.
  * @throws {Error} If the type definition is not valid.
- * @private
  */
 function validateType(theType) {
   if (!theType) {
     throw new Error('Undefined type.');
   }
-  if (theType['float']) {
+  if (theType.float) {
     validateFloatType_(theType);
   } else {
     validateIntType_(theType);
@@ -378,7 +377,7 @@ function validateType(theType) {
  * @private
  */
 function validateFloatType_(theType) {
-  if ([16,32,64].indexOf(theType['bits']) == -1) {
+  if ([16,32,64].indexOf(theType.bits) == -1) {
     throw new Error('Bad float type.');
   }
 }
@@ -390,7 +389,7 @@ function validateFloatType_(theType) {
  * @private
  */
 function validateIntType_(theType) {
-  if (theType['bits'] < 1 || theType['bits'] > 53) {
+  if (theType.bits < 1 || theType.bits > 53) {
     throw new Error('Bad type definition.');
   }
 }
@@ -449,12 +448,12 @@ function unpackString(bytes, index=0, len=null) {
  */
 function unpackFrom(buffer, theType, index=0) {
   setUp_(theType);
-  if (theType['be']) {
-    endianness(buffer, theType['offset'], index, index + theType['offset']);
+  if (theType.be) {
+    endianness(buffer, theType.offset, index, index + theType.offset);
   }
   let value = reader_(buffer, index);
-  if (theType['be']) {
-    endianness(buffer, theType['offset'], index, index + theType['offset']);
+  if (theType.be) {
+    endianness(buffer, theType.offset, index, index + theType.offset);
   }
   return value;
 }
@@ -554,12 +553,12 @@ function read64F_(bytes, i) {
  * @private
  */
 function setReader(theType) {
-  if (theType['float']) {
-    if (theType['bits'] == 16) {
+  if (theType.float) {
+    if (theType.bits == 16) {
       reader_ = read16F_;
-    } else if(theType['bits'] == 32) {
+    } else if(theType.bits == 32) {
       reader_ = read32F_;
-    } else if(theType['bits'] == 64) {
+    } else if(theType.bits == 64) {
       reader_ = read64F_;
     }
   } else {
@@ -573,8 +572,8 @@ function setReader(theType) {
  * @private
  */
 function setWriter(theType) {
-  if (theType['float']) {
-    if (theType['bits'] == 16) ; else if(theType['bits'] == 32) ; else if(theType['bits'] == 64) ;
+  if (theType.float) {
+    if (theType.bits == 16) ; else if(theType.bits == 32) ; else if(theType.bits == 64) ;
   }   
 }
 
@@ -586,12 +585,12 @@ function setWriter(theType) {
  */
 function setUp_(theType) {
   validateType(theType);
-  theType['offset'] = theType['bits'] < 8 ? 1 : Math.ceil(theType['bits'] / 8);
+  theType.offset = theType.bits < 8 ? 1 : Math.ceil(theType.bits / 8);
   setReader(theType);
   setWriter(theType);
   gInt_ = new Integer(
-    theType['bits'] == 64 ? 32 : theType['bits'],
-    theType['float'] ? false : theType['signed']);
+    theType.bits == 64 ? 32 : theType.bits,
+    theType.float ? false : theType.signed);
 }
 
 /*
@@ -622,7 +621,7 @@ function setUp_(theType) {
  */
 
 /** @private */
-const uInt32_ = {'bits': 32};
+const uInt32_ = {bits: 32};
 /** @type {number} */
 let head_ = 0;
 
@@ -634,14 +633,14 @@ let head_ = 0;
 function riffChunks(buffer) {
     head_ = 0;
     let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
+    uInt32_.be = chunkId == 'RIFX';
     let format = unpackString(buffer, 8, 4);
     head_ += 4;
     return {
-        'chunkId': chunkId,
-        'chunkSize': getChunkSize_(buffer, 0),
-        'format': format,
-        'subChunks': getSubChunksIndex_(buffer)
+        chunkId: chunkId,
+        chunkSize: getChunkSize_(buffer, 0),
+        format: format,
+        subChunks: getSubChunksIndex_(buffer)
     };
 }
 
@@ -656,7 +655,7 @@ function getSubChunksIndex_(buffer) {
     let i = head_;
     while(i <= buffer.length - 8) {
         chunks.push(getSubChunkIndex_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i += 8 + chunks[chunks.length - 1].chunkSize;
         i = i % 2 ? i + 1 : i;
     }
     return chunks;
@@ -671,20 +670,20 @@ function getSubChunksIndex_(buffer) {
  */
 function getSubChunkIndex_(buffer, index) {
     let chunk = {
-        'chunkId': getChunkId_(buffer, index),
-        'chunkSize': getChunkSize_(buffer, index),
+        chunkId: getChunkId_(buffer, index),
+        chunkSize: getChunkSize_(buffer, index),
     };
-    if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = unpackString(buffer, index + 8, 4);
+    if (chunk.chunkId == 'LIST') {
+        chunk.format = unpackString(buffer, index + 8, 4);
         head_ += 4;
-        chunk['subChunks'] = getSubChunksIndex_(buffer);
+        chunk.subChunks = getSubChunksIndex_(buffer);
     } else {
-        let realChunkSize = chunk['chunkSize'] % 2 ?
-            chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        let realChunkSize = chunk.chunkSize % 2 ?
+            chunk.chunkSize + 1 : chunk.chunkSize;
         head_ = index + 8 + realChunkSize;
-        chunk['chunkData'] = {
-            'start': index + 8,
-            'end': head_
+        chunk.chunkData = {
+            start: index + 8,
+            end: head_
         };
     }
     return chunk;

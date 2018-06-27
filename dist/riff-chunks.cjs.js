@@ -30,7 +30,7 @@ var byteData = require('byte-data');
  */
 
 /** @private */
-const uInt32_ = {'bits': 32};
+const uInt32_ = {bits: 32};
 /** @type {number} */
 let head_ = 0;
 
@@ -42,14 +42,14 @@ let head_ = 0;
 function riffChunks(buffer) {
     head_ = 0;
     let chunkId = getChunkId_(buffer, 0);
-    uInt32_['be'] = chunkId == 'RIFX';
+    uInt32_.be = chunkId == 'RIFX';
     let format = byteData.unpackString(buffer, 8, 4);
     head_ += 4;
     return {
-        'chunkId': chunkId,
-        'chunkSize': getChunkSize_(buffer, 0),
-        'format': format,
-        'subChunks': getSubChunksIndex_(buffer)
+        chunkId: chunkId,
+        chunkSize: getChunkSize_(buffer, 0),
+        format: format,
+        subChunks: getSubChunksIndex_(buffer)
     };
 }
 
@@ -64,7 +64,7 @@ function getSubChunksIndex_(buffer) {
     let i = head_;
     while(i <= buffer.length - 8) {
         chunks.push(getSubChunkIndex_(buffer, i));
-        i += 8 + chunks[chunks.length - 1]['chunkSize'];
+        i += 8 + chunks[chunks.length - 1].chunkSize;
         i = i % 2 ? i + 1 : i;
     }
     return chunks;
@@ -79,20 +79,20 @@ function getSubChunksIndex_(buffer) {
  */
 function getSubChunkIndex_(buffer, index) {
     let chunk = {
-        'chunkId': getChunkId_(buffer, index),
-        'chunkSize': getChunkSize_(buffer, index),
+        chunkId: getChunkId_(buffer, index),
+        chunkSize: getChunkSize_(buffer, index),
     };
-    if (chunk['chunkId'] == 'LIST') {
-        chunk['format'] = byteData.unpackString(buffer, index + 8, 4);
+    if (chunk.chunkId == 'LIST') {
+        chunk.format = byteData.unpackString(buffer, index + 8, 4);
         head_ += 4;
-        chunk['subChunks'] = getSubChunksIndex_(buffer);
+        chunk.subChunks = getSubChunksIndex_(buffer);
     } else {
-        let realChunkSize = chunk['chunkSize'] % 2 ?
-            chunk['chunkSize'] + 1 : chunk['chunkSize'];
+        let realChunkSize = chunk.chunkSize % 2 ?
+            chunk.chunkSize + 1 : chunk.chunkSize;
         head_ = index + 8 + realChunkSize;
-        chunk['chunkData'] = {
-            'start': index + 8,
-            'end': head_
+        chunk.chunkData = {
+            start: index + 8,
+            end: head_
         };
     }
     return chunk;

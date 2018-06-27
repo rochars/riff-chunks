@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 8.0.2 (2018-06-27)
+- Using only dot notation to allow better compilation on hosts.
+
 ## 8.0.1 (2018-06-27)
 - Smaller dist files.
 
