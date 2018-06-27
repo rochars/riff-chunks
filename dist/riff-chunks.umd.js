@@ -36,13 +36,7 @@
    */
 
   /**
-   * @module byteData/integer
-   * @ignore
-   */
-
-  /**
    * A class to pack and unpack two's complement ints and unsigned ints.
-   * 
    */
   class Integer {
 
@@ -391,7 +385,7 @@
    */
   function validateFloatType_(theType) {
     if ([16,32,64].indexOf(theType['bits']) == -1) {
-      throw new Error('Not a supported float type.');
+      throw new Error('Bad float type.');
     }
   }
 
@@ -403,36 +397,9 @@
    */
   function validateIntType_(theType) {
     if (theType['bits'] < 1 || theType['bits'] > 53) {
-      throw new Error('Not a supported type.');
+      throw new Error('Bad type definition.');
     }
   }
-
-  /*
-   * byte-data: Pack and unpack binary data.
-   * https://github.com/rochars/byte-data
-   *
-   * Copyright (c) 2017-2018 Rafael da Silva Rocha.
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining
-   * a copy of this software and associated documentation files (the
-   * "Software"), to deal in the Software without restriction, including
-   * without limitation the rights to use, copy, modify, merge, publish,
-   * distribute, sublicense, and/or sell copies of the Software, and to
-   * permit persons to whom the Software is furnished to do so, subject to
-   * the following conditions:
-   *
-   * The above copyright notice and this permission notice shall be
-   * included in all copies or substantial portions of the Software.
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-   * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-   * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-   * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-   * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-   *
-   */
 
   /*
    * byte-data: Pack and unpack binary data.
@@ -468,7 +435,6 @@
    * @param {number=} index The index to read.
    * @param {?number=} len The number of bytes to read.
    * @return {string}
-   * @private
    */
   function unpackString(bytes, index=0, len=null) {
     let chrs = '';

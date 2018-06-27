@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 8.0.1 (2018-06-27)
+- Smaller dist files.
+
 ## 8.0.0 (2018-06-26)
 - New API: Only the function riffChunks exported as default
 
