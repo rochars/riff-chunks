@@ -1,11 +1,10 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var byteData = require('byte-data');
 
 /*
- * riff-chunks: Read and write the chunks of RIFF and RIFX files.
- * https://github.com/rochars/riff-chunks
- *
  * Copyright (c) 2017-2018 Rafael da Silva Rocha.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -51,6 +50,32 @@ function riffChunks(buffer) {
         format: format,
         subChunks: getSubChunksIndex_(buffer)
     };
+}
+
+/**
+  * Find a chunk by its fourCC_ in a array of RIFF chunks.
+  * @param {!Object} chunks The wav file chunks.
+  * @param {string} chunkId The chunk fourCC_.
+  * @param {boolean} multiple True if there may be multiple chunks
+  *    with the same chunkId.
+  * @return {?Array<!Object>}
+  */
+function findChunk(chunks, chunkId, multiple=false) {
+  /** @type {!Array<!Object>} */
+  let chunk = [];
+  for (let i=0; i<chunks.length; i++) {
+    if (chunks[i].chunkId == chunkId) {
+      if (multiple) {
+        chunk.push(chunks[i]);
+      } else {
+        return chunks[i];
+      }
+    }
+  }
+  if (chunkId == 'LIST') {
+    return chunk.length ? chunk : null;
+  }
+  return null;
 }
 
 /**
@@ -122,4 +147,5 @@ function getChunkSize_(buffer, index) {
     return byteData.unpackFrom(buffer, uInt32_, index + 4);
 }
 
-module.exports = riffChunks;
+exports.riffChunks = riffChunks;
+exports.findChunk = findChunk;

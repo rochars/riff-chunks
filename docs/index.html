@@ -22,7 +22,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-riffChunks.html">riffChunks</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-riffChunks.html">riffChunks</a><ul class='methods'><li data-type='method'><a href="module-riffChunks.html#.findChunk">findChunk</a></li><li data-type='method'><a href="module-riffChunks.html#.riffChunks">riffChunks</a></li></ul></li></ul>
 </nav>
 
 <div id="main">
@@ -49,25 +49,36 @@
         <article><h1>riff-chunks</h1><p>Copyright (c) 2017-2018 Rafael da Silva Rocha.<br>https://github.com/rochars/riff-chunks</p>
 <p><a href="https://www.npmjs.com/package/riff-chunks"><img src="https://img.shields.io/npm/v/riff-chunks.svg?style=for-the-badge" alt="NPM version"></a> <a href="https://rochars.github.io/riff-chunks/index.html"><img src="https://img.shields.io/badge/docs-online-blue.svg?style=for-the-badge" alt="Docs"></a><br><a href="https://codecov.io/gh/rochars/riff-chunks"><img src="https://img.shields.io/codecov/c/github/rochars/riff-chunks.svg?style=flat-square" alt="Codecov"></a> <a href="https://travis-ci.org/rochars/riff-chunks"><img src="https://img.shields.io/travis/rochars/riff-chunks.svg?style=flat-square" alt="Unix Build"></a> <a href="https://ci.appveyor.com/project/rochars/riff-chunks"><img src="https://img.shields.io/appveyor/ci/rochars/riff-chunks.svg?style=flat-square&amp;logo=appveyor" alt="Windows Build"></a> <a href="https://scrutinizer-ci.com/g/rochars/riff-chunks/"><img src="https://img.shields.io/scrutinizer/g/rochars/riff-chunks.svg?style=flat-square&amp;logo=scrutinizer" alt="Scrutinizer"></a></p>
 <p>Parse the chunks of RIFF and RIFX files.</p>
-<h2>Install</h2><pre class="prettyprint source"><code>npm install riff-chunks</code></pre><h2>Use</h2><h3>ES6</h3><pre class="prettyprint source lang-javascript"><code>import riffChunks from 'riff-chunks';
-let chunks = riffChunks(riffFileBuffer);</code></pre><h3>Node</h3><pre class="prettyprint source lang-javascript"><code>const riffChunks = require(&quot;riff-chunks&quot;);
+<h2>Install</h2><pre class="prettyprint source"><code>npm install riff-chunks</code></pre><h2>Use</h2><h3>Node</h3><pre class="prettyprint source lang-javascript"><code>const riffChunks = require(&quot;riff-chunks&quot;).riffChunks;
 const fs = require(&quot;fs&quot;);
-let chunks = riffChunks(fs.readFileSync(&quot;file.wav&quot;));</code></pre><h3>Browser</h3><p>Use the compiled file in the <em>/dist</em> folder:</p>
+let chunks = riffChunks(fs.readFileSync(&quot;file.wav&quot;));</code></pre><h3>ES6</h3><pre class="prettyprint source lang-javascript"><code>import {riffChunks} from 'riff-chunks';
+let chunks = riffChunks(riffFileBuffer);</code></pre><h3>Browser</h3><p>Use the compiled file in the <em>/dist</em> folder:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;riff-chunks.min.js&quot;>&lt;/script>
 &lt;script>
-var chunks = riffChunks(riffFileBuffer);
+var chunks = riffChunks.riffChunks(riffFileBuffer);
 &lt;/script></code></pre><p>Or get it from the <a href="https://www.jsdelivr.com">jsDelivr</a> CDN:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/riff-chunks@8&quot;>&lt;/script></code></pre><p>Or get it from <a href="https://www.unpkg.com">unpkg</a>:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://unpkg.com/riff-chunks@8&quot;>&lt;/script></code></pre><p>Or as a ES6 module in modern browsers from <a href="https://jspm.io">jspm</a>:</p>
 <pre class="prettyprint source lang-html"><code>&lt;script type=&quot;module&quot;>
-  import riffChunks from 'https://dev.jspm.io/riff-chunks';
+  import {riffChunks} from 'https://dev.jspm.io/riff-chunks';
   // ...
 &lt;/script></code></pre><h2>API</h2><h3>riffChunks(buffer)</h3><pre class="prettyprint source lang-javascript"><code>/**
  * Return the chunks in a RIFF/RIFX file.
- * @param {!Uint8Array|!Array&lt;number>} buffer The file bytes.
+ * @param {!Uint8Array} buffer The file bytes.
  * @return {!Object} The RIFF chunks.
  */
-function riffChunks(buffer) {}</code></pre><p><strong>riffChunks()</strong> returns a object like this:</p>
+export function riffChunks(buffer) {}
+
+/**
+ * Find a chunk by its fourCC_ in a array of RIFF chunks.
+ * @param {!Object} chunks The wav file chunks.
+ * @param {string} chunkId The chunk fourCC_.
+ * @param {boolean} multiple True if there may be multiple chunks
+ *    with the same chunkId.
+ * @return {?Array&lt;!Object>}
+ * @private
+ */
+export function findChunk(chunks, chunkId, multiple=false) {}</code></pre><p><strong>riffChunks()</strong> returns a object like this:</p>
 <pre class="prettyprint source"><code>{
     &quot;chunkId&quot;: string,
     &quot;chunkSize&quot;: number,
@@ -82,15 +93,23 @@ function riffChunks(buffer) {}</code></pre><p><strong>riffChunks()</strong> retu
             }
         },
     ]
-}</code></pre><p>The <strong>chunkData</strong> field contains the raw bytes of the chunk data.</p>
-<h2>Distribution</h2><p>This library is a ES6 module also distributed as a CommonJS module, UMD and a compiled script for browsers.</p>
-<ul>
-<li>The <strong>CommonJS</strong> is the one used by Node. It is served in the &quot;main&quot; field of package.json</li>
-<li>The <strong>UMD</strong> module is compatible with Node, AMD and browsers. It is served in the &quot;browser&quot; field.</li>
-<li>The <strong>compiled dist</strong> is browser-only and should be the one served by CDNs.</li>
-<li>The <strong>ES6</strong> dist is <strong>riff-chunks.js</strong>, served as &quot;module&quot; in package.json</li>
+}</code></pre><h2>Distribution</h2><p>This library is a ES module also distributed as a CommonJS module, UMD module and a compiled script for browsers. It works out of the box in Node when installed with <code>npm install riff-chunks</code>.</p>
+<h3>If you are using this lib in a browser:</h3><p>You may load both <strong>./dist/riff-chunks.umd.js</strong> and <strong>./dist/riff-chunks.min.js</strong> in the browser with <code>&lt;script&gt;</code> tags. Ideally you should use <strong>riff-chunks.min.js</strong>. You can load it via the https://unpkg.com and https://<a href="http://www.jsdelivr.com/">www.jsdelivr.com/</a> CDNs:</p>
+<p><a href="https://unpkg.com/riff-chunks">unpkg</a>:</p>
+<pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://unpkg.com/riff-chunks&quot;>&lt;/script></code></pre><p><a href="https://cdn.jsdelivr.net/npm/riff-chunks">jsDelivr</a>:</p>
+<pre class="prettyprint source lang-html"><code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/riff-chunks&quot;>&lt;/script></code></pre><h3>If you are using this lib as a dependency:</h3><ul>
+<li><p>The <strong>CommonJS</strong> dist is <strong>./dist/riff-chunks.cjs.js</strong>. It is the dist file used by Node. It is served in the &quot;main&quot; field of package.json and is the source you are running when you <strong>npm install riff-chunks</strong>. It is not compiled or minified.</p>
+</li>
+<li><p>The <strong>UMD</strong> module is <strong>./dist/riff-chunks.umd.js</strong>. It is transpiled to ES5 and compatible with Node, AMD and browsers. It is served in the &quot;browser&quot; field of package.json.</p>
+</li>
+<li><p>The <strong>browser-only</strong> dist is <strong>./dist/riff-chunks.min.js</strong>. It is transpiled to ES5 and compiled. It is used in the &quot;unpkg&quot; and &quot;jsdelivr&quot; fields of package.json.</p>
+</li>
+<li><p>The <strong>ES6 bundle</strong> is <strong>./dist/riff-chunks.js</strong>, served as &quot;es2015&quot; in package.json. It is not compiled/minified.</p>
+</li>
+<li><p><strong>./main.js</strong> is served as &quot;module&quot; in package.json. This should be the entry point for bundlers.</p>
+</li>
 </ul>
-<p>You may load both <strong>riff-chunks.umd.js</strong> and <strong>riff-chunks.min.js</strong> in the browser with <code>&lt;script&gt;</code> tags.</p>
+<p>If your module bundler is using &quot;browser&quot; as the entry point <strong>your dist should work the same</strong> but will be a larger file.</p>
 <h2>LICENSE</h2><p>Copyright (c) 2017-2018 Rafael da Silva Rocha.</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -139,7 +158,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></article>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line28">line 28</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line25">line 25</a>
     </li></ul></dd>
     
 
@@ -169,6 +188,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></article>
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://github.com/rochars/riff-chunks">https://github.com/rochars/riff-chunks</a></li>
+        </ul>
+    </dd>
     
 
     
@@ -214,7 +240,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></article>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Jun 27 2018 04:24:35 GMT-0300 (Hora oficial do Brasil) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jul 13 2018 03:46:48 GMT-0300 (Hora oficial do Brasil) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

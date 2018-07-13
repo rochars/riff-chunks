@@ -1,13 +1,74 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global['riff-chunks'] = factory());
-}(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (factory((global['riff-chunks'] = {})));
+}(this, (function (exports) { 'use strict';
 
   /*
-   * byte-data: Pack and unpack binary data.
-   * https://github.com/rochars/byte-data
+   * Copyright (c) 2017-2018 Rafael da Silva Rocha.
    *
+   * Permission is hereby granted, free of charge, to any person obtaining
+   * a copy of this software and associated documentation files (the
+   * "Software"), to deal in the Software without restriction, including
+   * without limitation the rights to use, copy, modify, merge, publish,
+   * distribute, sublicense, and/or sell copies of the Software, and to
+   * permit persons to whom the Software is furnished to do so, subject to
+   * the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be
+   * included in all copies or substantial portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+   * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+   * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+   * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+   *
+   */
+
+  /**
+   * @fileoverview A function to swap endianness in byte buffers.
+   * @see https://github.com/rochars/endianness
+   */
+
+  /**
+   * Swap the byte ordering in a buffer. The buffer is modified in place.
+   * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
+   * @param {number} offset The byte offset.
+   * @param {number=} index The start index. Assumes 0.
+   * @param {number=} end The end index. Assumes the buffer length.
+   * @throws {Error} If the buffer length is not valid.
+   */
+  function endianness(bytes, offset, index=0, end=bytes.length) {
+    if (end % offset) {
+      throw new Error("Bad buffer length.");
+    }
+    for (; index < end; index += offset) {
+      swap(bytes, offset, index);
+    }
+  }
+
+  /**
+   * Swap the byte order of a value in a buffer. The buffer is modified in place.
+   * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
+   * @param {number} offset The byte offset.
+   * @param {number} index The start index.
+   * @private
+   */
+  function swap(bytes, offset, index) {
+    offset--;
+    for(let x = 0; x < offset; x++) {
+      /** @type {number|string} */
+      let theByte = bytes[index + x];
+      bytes[index + x] = bytes[index + offset];
+      bytes[index + offset] = theByte;
+      offset--;
+    }
+  }
+
+  /*
    * Copyright (c) 2017-2018 Rafael da Silva Rocha.
    *
    * Permission is hereby granted, free of charge, to any person obtaining
@@ -33,6 +94,7 @@
 
   /**
    * @fileoverview Pack and unpack two's complement ints and unsigned ints.
+   * @see https://github.com/rochars/byte-data
    */
 
   /**
@@ -49,26 +111,31 @@
       /**
        * The max number of bits used by the data.
        * @type {number}
+       * @private
        */
       this.bits = bits;
       /**
        * If this type it is signed or not.
        * @type {boolean}
+       * @private
        */
       this.signed = signed;
       /**
        * The number of bytes used by the data.
        * @type {number}
+       * @private
        */
       this.offset = 0;
       /**
        * Min value for numbers of this type.
        * @type {number}
+       * @private
        */
       this.min = -Infinity;
       /**
        * Max value for numbers of this type.
        * @type {number}
+       * @private
        */
       this.max = Infinity;
       /**
@@ -259,9 +326,6 @@
   }
 
   /*
-   * endianness: Swap endianness in byte arrays.
-   * https://github.com/rochars/endianness
-   *
    * Copyright (c) 2017-2018 Rafael da Silva Rocha.
    *
    * Permission is hereby granted, free of charge, to any person obtaining
@@ -286,79 +350,20 @@
    */
 
   /**
-   * @fileoverview A function to swap endianness in byte buffers.
+   * @fileoverview Functions to validate input.
+   * @see https://github.com/rochars/byte-data
    */
 
   /**
-   * @module endianness
+   * Validate that the code is a valid ASCII code.
+   * @param {number} code The code.
+   * @throws {Error} If the code is not a valid ASCII code.
    */
-
-  /**
-   * Swap the byte ordering in a buffer. The buffer is modified in place.
-   * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
-   * @param {number} offset The byte offset.
-   * @param {number=} start The start index. Assumes 0.
-   * @param {?number=} end The end index. Assumes the buffer length.
-   * @throws {Error} If the buffer length is not valid.
-   */
-  function endianness(bytes, offset, start=0, end=null) {
-      let len = end || bytes.length;
-      let limit = parseInt(offset / 2, 10);
-      if (len % offset) {
-          throw new Error("Bad buffer length.");
-      }
-      let i = start;
-      while (i < len) {
-          swap(bytes, offset, i, limit);
-          i += offset;
-      }
+  function validateASCIICode(code) {
+    if (code > 127) {
+      throw new Error ('Bad ASCII code.');
+    }
   }
-
-  /**
-   * Swap the byte order of a value in a buffer. The buffer is modified in place.
-   * @param {!Array<number|string>|!Uint8Array} bytes The bytes.
-   * @param {number} offset The byte offset.
-   * @param {number} index The start index.
-   * @private
-   */
-  function swap(bytes, offset, index, limit) {
-      let x = 0;
-      let y = offset - 1;
-      while(x < limit) {
-          let theByte = bytes[index + x];
-          bytes[index + x] = bytes[index + y];
-          bytes[index + y] = theByte;
-          x++;
-          y--;
-      }
-  }
-
-  /*
-   * byte-data: Pack and unpack binary data.
-   * https://github.com/rochars/byte-data
-   *
-   * Copyright (c) 2017-2018 Rafael da Silva Rocha.
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining
-   * a copy of this software and associated documentation files (the
-   * "Software"), to deal in the Software without restriction, including
-   * without limitation the rights to use, copy, modify, merge, publish,
-   * distribute, sublicense, and/or sell copies of the Software, and to
-   * permit persons to whom the Software is furnished to do so, subject to
-   * the following conditions:
-   *
-   * The above copyright notice and this permission notice shall be
-   * included in all copies or substantial portions of the Software.
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-   * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-   * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-   * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-   * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-   *
-   */
 
   /**
    * Validate the type definition.
@@ -401,9 +406,6 @@
   }
 
   /*
-   * byte-data: Pack and unpack binary data.
-   * https://github.com/rochars/byte-data
-   *
    * Copyright (c) 2017-2018 Rafael da Silva Rocha.
    *
    * Permission is hereby granted, free of charge, to any person obtaining
@@ -427,63 +429,36 @@
    *
    */
 
-  // Strings
   /**
-   * Read a string from a byte buffer.
-   * @param {!Uint8Array} bytes A byte buffer.
-   * @param {number=} index The index to read.
-   * @param {?number=} len The number of bytes to read.
-   * @return {string}
+   * Use a Typed Array to check if the host is BE or LE. This will impact
+   * on how 64-bit floating point numbers are handled.
+   * @type {boolean}
+   * @private
    */
-  function unpackString(bytes, index=0, len=null) {
-    let chrs = '';
-    len = len || bytes.length - index;
-    for(let j = 0; j < len; j++) {
-      chrs += String.fromCharCode(bytes[index+j]);
-    }
-    return chrs;
-  }
-
-  /**
-   * Unpack a number from a byte buffer by index.
-   * @param {!Uint8Array} buffer The byte buffer.
-   * @param {!Object} theType The type definition.
-   * @param {number=} index The buffer index to read.
-   * @return {number}
-   * @throws {Error} If the type definition is not valid
-   */
-  function unpackFrom(buffer, theType, index=0) {
-    setUp_(theType);
-    if (theType.be) {
-      endianness(buffer, theType.offset, index, index + theType.offset);
-    }
-    let value = reader_(buffer, index);
-    if (theType.be) {
-      endianness(buffer, theType.offset, index, index + theType.offset);
-    }
-    return value;
-  }
+  const BE_ENV = new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x12;
+  const HIGH = BE_ENV ? 1 : 0;
+  const LOW = BE_ENV ? 0 : 1;
 
   /**
    * @type {!Int8Array}
    * @private
    */
-  const int8_ = new Int8Array(8);
+  let int8_ = new Int8Array(8);
   /**
    * @type {!Uint32Array}
    * @private
    */
-  const ui32_ = new Uint32Array(int8_.buffer);
+  let ui32_ = new Uint32Array(int8_.buffer);
   /**
    * @type {!Float32Array}
    * @private
    */
-  const f32_ = new Float32Array(int8_.buffer);
+  let f32_ = new Float32Array(int8_.buffer);
   /**
    * @type {!Float64Array}
    * @private
    */
-  const f64_ = new Float64Array(int8_.buffer);
+  let f64_ = new Float64Array(int8_.buffer);
   /**
    * @type {Function}
    * @private
@@ -494,6 +469,23 @@
    * @private
    */
   let gInt_ = {};
+
+  /**
+   * Validate the type and set up the packing/unpacking functions.
+   * @param {!Object} theType The type definition.
+   * @throws {Error} If the type definition is not valid.
+   * @private
+   */
+  function setUp_(theType) {
+    validateType(theType);
+    theType.offset = theType.bits < 8 ? 1 : Math.ceil(theType.bits / 8);
+    theType.be = theType.be || false;
+    setReader(theType);
+    setWriter(theType);
+    gInt_ = new Integer(
+      theType.bits == 64 ? 32 : theType.bits,
+      theType.float ? false : theType.signed);
+  }
 
   /**
    * Read int values from bytes.
@@ -515,9 +507,13 @@
    * @private
    */
   function read16F_(bytes, i) {
+    /** @type {number} */
     let int = gInt_.read(bytes, i);
+    /** @type {number} */
     let exponent = (int & 0x7C00) >> 10;
+    /** @type {number} */
     let fraction = int & 0x03FF;
+    /** @type {number} */
     let floatValue;
     if (exponent) {
       floatValue =  Math.pow(2, exponent - 15) * (1 + fraction / 0x400);
@@ -548,8 +544,8 @@
    * @private
    */
   function read64F_(bytes, i) {
-    ui32_[0] = gInt_.read(bytes, i);
-    ui32_[1] = gInt_.read(bytes, i + 4);
+    ui32_[HIGH] = gInt_.read(bytes, i);
+    ui32_[LOW] = gInt_.read(bytes, i + 4);
     return f64_[0];
   }
 
@@ -583,26 +579,71 @@
     }   
   }
 
-  /**
-   * Validate the type and set up the packing/unpacking functions.
-   * @param {!Object} theType The type definition.
-   * @throws {Error} If the type definition is not valid.
-   * @private
+  /*
+   * Copyright (c) 2017-2018 Rafael da Silva Rocha.
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining
+   * a copy of this software and associated documentation files (the
+   * "Software"), to deal in the Software without restriction, including
+   * without limitation the rights to use, copy, modify, merge, publish,
+   * distribute, sublicense, and/or sell copies of the Software, and to
+   * permit persons to whom the Software is furnished to do so, subject to
+   * the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be
+   * included in all copies or substantial portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+   * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+   * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+   * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+   *
    */
-  function setUp_(theType) {
-    validateType(theType);
-    theType.offset = theType.bits < 8 ? 1 : Math.ceil(theType.bits / 8);
-    setReader(theType);
-    setWriter(theType);
-    gInt_ = new Integer(
-      theType.bits == 64 ? 32 : theType.bits,
-      theType.float ? false : theType.signed);
+
+  // ASCII characters
+  /**
+   * Read a string of ASCII characters from a byte buffer.
+   * @param {!Uint8Array} bytes A byte buffer.
+   * @param {number=} index The index to read.
+   * @param {?number=} len The number of bytes to read.
+   * @return {string}
+   * @throws {Error} If a character in the string is not valid ASCII.
+   */
+  function unpackString(bytes, index=0, len=null) {
+    let chrs = '';
+    len = len ? index + len : bytes.length;
+    while (index < len) {
+      validateASCIICode(bytes[index]);
+      chrs += String.fromCharCode(bytes[index]);
+      index++;
+    }
+    return chrs;
+  }
+
+  /**
+   * Unpack a number from a byte buffer by index.
+   * @param {!Uint8Array} buffer The byte buffer.
+   * @param {!Object} theType The type definition.
+   * @param {number=} index The buffer index to read.
+   * @return {number}
+   * @throws {Error} If the type definition is not valid
+   */
+  function unpackFrom(buffer, theType, index=0) {
+    setUp_(theType);
+    if (theType.be) {
+      endianness(buffer, theType.offset, index, index + theType.offset);
+    }
+    let value = reader_(buffer, index);
+    if (theType.be) {
+      endianness(buffer, theType.offset, index, index + theType.offset);
+    }
+    return value;
   }
 
   /*
-   * riff-chunks: Read and write the chunks of RIFF and RIFX files.
-   * https://github.com/rochars/riff-chunks
-   *
    * Copyright (c) 2017-2018 Rafael da Silva Rocha.
    *
    * Permission is hereby granted, free of charge, to any person obtaining
@@ -648,6 +689,32 @@
           format: format,
           subChunks: getSubChunksIndex_(buffer)
       };
+  }
+
+  /**
+    * Find a chunk by its fourCC_ in a array of RIFF chunks.
+    * @param {!Object} chunks The wav file chunks.
+    * @param {string} chunkId The chunk fourCC_.
+    * @param {boolean} multiple True if there may be multiple chunks
+    *    with the same chunkId.
+    * @return {?Array<!Object>}
+    */
+  function findChunk(chunks, chunkId, multiple=false) {
+    /** @type {!Array<!Object>} */
+    let chunk = [];
+    for (let i=0; i<chunks.length; i++) {
+      if (chunks[i].chunkId == chunkId) {
+        if (multiple) {
+          chunk.push(chunks[i]);
+        } else {
+          return chunks[i];
+        }
+      }
+    }
+    if (chunkId == 'LIST') {
+      return chunk.length ? chunk : null;
+    }
+    return null;
   }
 
   /**
@@ -719,6 +786,9 @@
       return unpackFrom(buffer, uInt32_, index + 4);
   }
 
-  return riffChunks;
+  exports.riffChunks = riffChunks;
+  exports.findChunk = findChunk;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

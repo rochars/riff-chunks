@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 9.0.0 (2018-07-13)
+- API change: export {riffChunks, findChunk}.
+
 ## 8.0.2 (2018-06-27)
 - Using only dot notation to allow better compilation on hosts.
 

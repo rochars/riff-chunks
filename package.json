@@ -1,6 +1,6 @@
 {
   "name": "riff-chunks",
-  "version": "8.0.2",
+  "version": "9.0.0",
   "description": "Parse the chunks of RIFF and RIFX files.",
   "homepage": "https://github.com/rochars/riff-chunks",
   "author": "Rafael S. Rocha <rocha.rafaelsilva@gmail.com>",
@@ -63,6 +63,6 @@
     "rollup-plugin-node-resolve": "^3.3.0"
   },
   "dependencies": {
-    "byte-data": "^13.0.1"
+    "byte-data": "^13.2.5"
   }
 }
